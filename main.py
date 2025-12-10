@@ -200,11 +200,9 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
         
-<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}'></span><span
-lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
-EN-US'><a href="mailto:{site_url}">{site_url}</a></span><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
+<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config["color"]};'>
+    <a href='{site_url}' style='color: inherit; text-decoration: none;'>{site_url}</a>
+</p>
 '''
 
     # full html
@@ -310,8 +308,8 @@ if __name__ == "__main__":
         1,                                          # conf_hotel (1 - enable, 2 - disable)
         1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
         1,                                          # conf_mail (1 - enable, 2 - disable)
-        2,                                          # conf_banner (1 - enable, 2 - disable)
-        2,                                          # conf_site (1 - enable, 2 - disable)
+        1,                                          # conf_banner (1 - enable, 2 - disable)
+        1,                                          # conf_site (1 - enable, 2 - disable)
         ''                                          # conf_wa (if '' --> 'WA'; if 'something' --> 'something')
     ]
 
