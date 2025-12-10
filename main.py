@@ -14,11 +14,12 @@ def create_email_signature(global_id, first_name, last_name, job, email, greet,
                             conf_mail,
                             conf_banner,
                             conf_site,
+                            conf_wa
                            ):
 
     # color and config from hotel
     hotel_config = None
-    if language == 1:
+    if cb_language == 1:
         hotel_config = {
             1: {
                 "color": "#441D61",
@@ -36,7 +37,7 @@ def create_email_signature(global_id, first_name, last_name, job, email, greet,
                 "hotel_name": ["Хаятт Ридженси Екатеринбург", "Хаятт Плейс Екатеринбург"]
             }
         }
-    elif language == 2:
+    elif cb_language == 2:
         hotel_config = {
             1: {
                 "color": "#441D61",
@@ -56,70 +57,62 @@ def create_email_signature(global_id, first_name, last_name, job, email, greet,
         }
     if not hotel_config:
         return None
-    config = hotel_config.get(hotel, None)
+    config = hotel_config.get(cb_hotel, None)
     
     # full name
     full_name = f'{first_name} {last_name}'.upper()
 
     # telephone numbers
     phones_html = ''
-    work_phone = ''
-    mobile_phone = ''
-    whatsapp_phone = ''
-
-    # types of numbers
-    for phone_type, number in phone_numbers.items():
-        if phone_type == 'T' and number:
-            work_phone = number
-        elif phone_type == 'M' and number:
-            mobile_phone = number
-        elif phone_type == 'WA' and number:
-            whatsapp_phone = number
+    if conf_wa == '':
+        pref = 'WA'
+    else:
+        pref = conf_wa
 
     # add phones
-    
+    if conf_phone_numbers == 1:
     # work phones
-    if work_phone:
-        phones_html += f'''
+        if work_number:
+            phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
 mso-bidi-font-weight:bold'> T&nbsp;&nbsp;</span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'> {work_phone}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
     
-    # mobile + wa
-    if mobile_phone and whatsapp_phone:
-        phones_html += f'''
+        # mobile + wa
+        if personal_number and wa_number:
+            phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> М&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {mobile_phone}&nbsp;&nbsp;</span>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> WA&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {whatsapp_phone}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {pref}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {wa_number}&nbsp;&nbsp;</span>
 <o:p></o:p>
 </p>'''
-    elif mobile_phone:
-        phones_html += f'''
+        elif personal_number:
+            phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
 mso-bidi-font-weight:bold'>M&nbsp;</span><span style='font-size:10.0pt;font-family:
-"Arial",sans-serif;color:black'> {mobile_phone}&nbsp;&nbsp; <o:p></o:p></span></p>'''
-    elif whatsapp_phone and not work_phone:
-        phones_html += f'''
+"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+        elif wa_number and not work_number:
+            phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
-mso-bidi-font-weight:bold'>WA</span><span style='font-size:10.0pt;font-family:
-"Arial",sans-serif;color:black'> {whatsapp_phone}&nbsp;&nbsp; <o:p></o:p></span></p>'''
-    else:
-        phones_html = f'''
+mso-bidi-font-weight:bold'>{pref}</span><span style='font-size:10.0pt;font-family:
+"Arial",sans-serif;color:black'> {wa_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+        else:
+            phones_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> T&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_phone}&nbsp;&nbsp;</span>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> WA&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {whatsapp_phone}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {pref}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {wa_number}&nbsp;&nbsp;</span>
 <o:p></o:p>
 </p>'''
 
     # greeting
-    if greet:
+    if greet and conf_greet == 1:
         greeting = f'''
 <p class=MsoNormal><span style='font-size:10.0pt;font-family:"Arial",sans-serif;
 color:black'>{greet},<o:p></o:p></span></p>
@@ -130,45 +123,54 @@ color:black'><o:p>&nbsp;</o:p></span></p>
         greeting = ''
 
     # f name
-    full_name_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+    full_name_html = ''
+    if conf_fname == 1:
+        full_name_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:10.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:{config["color"]};text-transform:
 uppercase'>{full_name}<o:p></o:p></span></b></p>
 '''
 
     # job
-    job_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+    job_html = ''
+    space_after_job = ''
+    if conf_job == 1:
+        job_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><span style='font-size:10.0pt;mso-bidi-font-size:
 9.0pt;line-height:120%;font-family:"Arial",sans-serif;mso-bidi-font-weight:
 bold'>{job.capitalize()}<o:p></o:p></span></p>
 '''
 
-    # space_after_job
-    space_after_job = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+        # space_after_job
+        space_after_job = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='mso-ascii-font-family:Calibri;mso-hansi-font-family:Calibri;mso-bidi-font-family:
 Calibri'><o:p>&nbsp;</o:p></span></p>
 '''
 
     # hotel and address
     hotel_and_address = ''
-    for item in config["hotel_name"]:
-        hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+    space_after_address = ''
+    if conf_hotel == 1:
+        for item in config["hotel_name"]:
+            hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif;
 color:{config["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>
 '''
-    hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+        hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif'>
 {config["address"]}<o:p></o:p></span></p>
 '''
 
-    # space_after_address
-    space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+        # space_after_address
+        space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
 '''
 
     # email
-    email_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+    email_html = ''
+    if conf_mail == 1:
+        email_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}'> E&nbsp;&nbsp;&nbsp;</span><span
 lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
 EN-US'><a href="mailto:{email}">{email}</a></span><span
@@ -176,7 +178,7 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
 '''
     # banner
     banner_html = ''
-    if banner == 1:
+    if conf_banner == 1:
         try:
             with open(banner_path, 'rb'):
                 banner_html = f'''
@@ -190,8 +192,23 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
         except FileNotFoundError:
             banner_html = ''
 
+    # site
+    site_html = ''
+    if conf_site == 1:
+        site_html = f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+        
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}'></span><span
+lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
+EN-US'><a href="mailto:{site_url}">{site_url}</a></span><span
+style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
+'''
+
     # full html
-    if type != 1:
+    if cb_type != 1:
         space_after_job = ''
         hotel_and_address =  ''
         space_after_address = ''
@@ -246,6 +263,8 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 
 {banner_html}
 
+{site_html}
+
 <p class=MsoNormal><o:p>&nbsp;</o:p></p>
 </div>
 </body>
@@ -282,17 +301,18 @@ if __name__ == "__main__":
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
         1,                                          # cb_language (1 - ru, 2 - en)
         1,                                          # cb_type (1 - full, 2 - cut)
-        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
+        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.png',  # banner_path
         r'https://ya.ru',                           # banner_url
         r'https://ya.ru',                           # site_url
-        1,                                          # conf_greet (1 - enable, 2 - disable)
+        2,                                          # conf_greet (1 - enable, 2 - disable)
         1,                                          # conf_fname (1 - enable, 2 - disable)
         1,                                          # conf_job (1 - enable, 2 - disable)
         1,                                          # conf_hotel (1 - enable, 2 - disable)
         1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
         1,                                          # conf_mail (1 - enable, 2 - disable)
-        1,                                          # conf_banner (1 - enable, 2 - disable)
-        1,                                          # conf_site (1 - enable, 2 - disable)
+        2,                                          # conf_banner (1 - enable, 2 - disable)
+        2,                                          # conf_site (1 - enable, 2 - disable)
+        ''                                          # conf_wa (if '' --> 'WA'; if 'something' --> 'something')
     ]
 
     users = [first, ]
@@ -310,7 +330,8 @@ if __name__ == "__main__":
         conf_phone_numbers,
         conf_mail,
         conf_banner,
-        conf_site,) = user
+        conf_site,
+        conf_wa) = user
 
         values = [
             global_id, first_name, last_name, job, email, greet,
@@ -324,7 +345,8 @@ if __name__ == "__main__":
             conf_phone_numbers,
             conf_mail,
             conf_banner,
-            conf_site
+            conf_site,
+            conf_wa
         ]
 
         for i in values:
@@ -354,7 +376,8 @@ if __name__ == "__main__":
             conf_phone_numbers=conf_phone_numbers,
             conf_mail=conf_mail,
             conf_banner=conf_banner,
-            conf_site=conf_site
+            conf_site=conf_site,
+            conf_wa=conf_wa
         )
 
         if signature_html:
