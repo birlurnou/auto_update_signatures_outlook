@@ -2,20 +2,19 @@ import os
 import webbrowser
 
 
-def create_email_signature(global_id,
-                           first_name,
-                           last_name,
-                           job,
-                           phone_numbers,
-                           cut_phone,
-                           email,
-                           hotel,
-                           banner,
-                           banner_path,
-                           link_href,
-                           greet,
-                           language,
-                           type):
+def create_email_signature(global_id, first_name, last_name, job, email, greet,
+                            work_number, personal_number, wa_number, cut_phone,
+                            cb_hotel, cb_language, cb_type,
+                            banner_path, banner_url, site_url,
+                            conf_greet,
+                            conf_fname,
+                            conf_job,
+                            conf_hotel,
+                            conf_phone_numbers,
+                            conf_mail,
+                            conf_banner,
+                            conf_site,
+                           ):
 
     # color and config from hotel
     hotel_config = None
@@ -185,7 +184,7 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
                 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
                 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
     
-                <p class=MsoNormal><a href="{link_href}">
+                <p class=MsoNormal><a href="{banner_url}">
                 <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
                 </a><o:p></o:p></p>'''
         except FileNotFoundError:
@@ -269,139 +268,93 @@ if __name__ == "__main__":
 
     user_global_id = os.environ['USERNAME']
 
-    first_phones = {
-        'T': '+7 343 123 1234',
-        'M': '+7 963 123 1234',
-        'WA': ''
-    }
-
-    # global_id, first_name, last_name, job, phone_numbers, cut_phone,
-    # email, hotel, banner, banner_path, link_href, greet, language, type
-
-    # global id
-    # имя
-    # фамилия
-    # должность
-    # почта
-    # приветствие
-
-    # рабочий номер
-    # личный номер
-    # номер whatsapp
-    # короткий номер
-
-    # приветствие
-
-    # отель
-    # язык
-    # тип
-
-    # путь до баннера
-    # ссылка для баннера
-    # сайт
-
-    # чекбоксы #
-
-    # убрать баннер
-    # убрать имя
-    # убрать должность
-    # убрать отели
-    # убрать номера телефонов
-    # убрать адрес почты
-
-    # добавить сайт
-    # добавить приветствие
-
     first = [
-        '1234567',                                 # global_id
-        'Иван',                                    # first_name
-        'Иванов',                                # last_name
-        'Специалист по информационным системам',   # job
-        first_phones,                              # phone_numbers
-        '+7 963 123 1234 (*1234 / 61234)',         # cut_phone
-        'ivan.ivanov@example.ru',   # email
-        3,                                         # hotel
-        1,                                         # banner
-        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',    # banner_path
-        r'https://ya.ru',                                                 # link_href
-        'С уважением',                             # greet
-        1,                                         # language
-        1                                          # type
+        '1234567',                                  # global_id
+        'Иван',                                     # first_name
+        'Иванов',                                   # last_name
+        'Специалист по информационным системам',    # job
+        'ivan.ivanov@example.ru',                   # email
+        'С уважением',                              # greet
+        '+7 343 123 1234',                          # work_number
+        '+7 963 123 1234',                          # presonal_number
+        '',                                         # wa_number
+        '+7 963 123 1234 (*1234 / 61234)',          # cut_phone
+        3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
+        1,                                          # cb_language (1 - ru, 2 - en)
+        1,                                          # cb_type (1 - full, 2 - cut)
+        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
+        r'https://ya.ru',                           # banner_url
+        r'https://ya.ru',                           # site_url
+        1,                                          # conf_greet (1 - enable, 2 - disable)
+        1,                                          # conf_fname (1 - enable, 2 - disable)
+        1,                                          # conf_job (1 - enable, 2 - disable)
+        1,                                          # conf_hotel (1 - enable, 2 - disable)
+        1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
+        1,                                          # conf_mail (1 - enable, 2 - disable)
+        1,                                          # conf_banner (1 - enable, 2 - disable)
+        1,                                          # conf_site (1 - enable, 2 - disable)
     ]
 
-    second_phones = {
-        'T': '',
-        'M': '',
-        'WA': '+7 963 123 1234'
-    }
-
-    # global_id, first_name, last_name, job, phone_numbers, cut_phone,
-    # email, hotel, banner, banner_path, link_href, greet, language, type
-
-    second = [
-        '1234568',  # global_id
-        'иван',  # first_name
-        'иВанов',  # last_name
-        'специалист по информационным системам',  # job
-        second_phones,  # phone_numbers
-        '+7 963 123 1234 (*1234 / 61234)', # cut_phone
-        'ivan.ivanov@example.ru',  # email
-        2,  # hotel
-        1,  # banner
-        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.png',
-        # banner_path
-        r'https://ya.ru',  # link_href
-        'С уважением',  # greet
-        2,  # language
-        2  # type
-    ]
-
-    users = [first, second]
+    users = [first, ]
 
     for user in users:
 
-        global_id, first_name, last_name, job, phone_numbers, cut_phone, email, hotel, banner, banner_path, link_href, greet, language, type = user # first / second
+        (global_id, first_name, last_name, job, email, greet,
+        work_number, personal_number, wa_number, cut_phone,
+        cb_hotel, cb_language, cb_type,
+        banner_path, banner_url, site_url,
+        conf_greet,
+        conf_fname,
+        conf_job,
+        conf_hotel,
+        conf_phone_numbers,
+        conf_mail,
+        conf_banner,
+        conf_site,) = user
 
         values = [
-            global_id,
-            first_name,
-            last_name,
-            job,
-            phone_numbers,
-            cut_phone,
-            email,
-            hotel,
-            banner,
-            banner_path,
-            link_href,
-            greet,
-            language,
-            type
+            global_id, first_name, last_name, job, email, greet,
+            work_number, personal_number, wa_number, cut_phone,
+            cb_hotel, cb_language, cb_type,
+            banner_path, banner_url, site_url,
+            conf_greet,
+            conf_fname,
+            conf_job,
+            conf_hotel,
+            conf_phone_numbers,
+            conf_mail,
+            conf_banner,
+            conf_site
         ]
 
         for i in values:
             print(i)
-
-        # type (1 - full, 2 - cut)
-        # hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
-        # banner (1 - ON, 2 - OFF)
-        # language (1 - ru, 2 - en)
 
         signature_html = create_email_signature(
             global_id=global_id,
             first_name=first_name,
             last_name=last_name,
             job=job,
-            phone_numbers=phone_numbers,
-            cut_phone=cut_phone,
             email=email,
-            hotel=hotel,
-            banner=banner,
-            banner_path=banner_path,
-            link_href=link_href,
             greet=greet,
-            language=language,
-            type=type
+            work_number=work_number,
+            personal_number=personal_number,
+            wa_number=wa_number,
+            cut_phone=cut_phone,
+            cb_hotel=cb_hotel,
+            cb_language=cb_language,
+            cb_type=cb_type,
+            banner_path=banner_path,
+            banner_url=banner_url,
+            site_url=site_url,
+            conf_greet=conf_greet,
+            conf_fname=conf_fname,
+            conf_job=conf_job,
+            conf_hotel=conf_hotel,
+            conf_phone_numbers=conf_phone_numbers,
+            conf_mail=conf_mail,
+            conf_banner=conf_banner,
+            conf_site=conf_site
         )
 
         if signature_html:
