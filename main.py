@@ -4,7 +4,7 @@ import win32security
 import winreg
 
 def create_email_signature(first_name, last_name, job, email, greet,
-                            work_number, personal_number, social_number, cut_phone,
+                            work_number, personal_number, social_number, cut_number,
                             cb_hotel, cb_language, cb_type,
                             banner_path, banner_url, site_url,
                             conf_greet,
@@ -222,7 +222,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
         phones_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
 mso-bidi-font-weight:bold'></span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'>{cut_phone}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+font-family:"Arial",sans-serif;color:black'>{cut_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         email_html = ''
     html_signature = f'''<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         '+7 343 123 1234',                          # work_number
         '+7 963 123 1234',                          # personal_number
         '',                                         # social_number
-        '+7 963 123 1234 (*1234 / 61234)',          # cut_phone
+        '+7 963 123 1234 (*1234 / 61234)',          # cut_number
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
         1,                                          # cb_language (1 - ru, 2 - en)
         1,                                          # cb_type (1 - full, 2 - cut)
@@ -340,9 +340,9 @@ if __name__ == "__main__":
         1,                                          # conf_hotel (1 - enable, 2 - disable)
         1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
         1,                                          # conf_mail (1 - enable, 2 - disable)
-        1,                                          # conf_banner (1 - enable, 2 - disable)
-        1,                                          # conf_site (1 - enable, 2 - disable)
-        1,                                          # conf_main_sig (1 - enable, 2 - disable)
+        2,                                          # conf_banner (1 - enable, 2 - disable)
+        2,                                          # conf_site (1 - enable, 2 - disable)
+        2,                                          # conf_main_sig (1 - enable, 2 - disable)
     ]
 
     users = [first, ]
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     for user in users:
 
         (signature_name, global_id, first_name, last_name, job, email, greet,
-        work_number, personal_number, social_number, cut_phone,
+        work_number, personal_number, social_number, cut_number,
         cb_hotel, cb_language, cb_type,
         banner_path, banner_url, site_url,
         conf_greet,
@@ -366,7 +366,7 @@ if __name__ == "__main__":
 
         values = [
             signature_name, global_id, first_name, last_name, job, email, greet,
-            work_number, personal_number, social_number, cut_phone,
+            work_number, personal_number, social_number, cut_number,
             cb_hotel, cb_language, cb_type,
             banner_path, banner_url, site_url,
             conf_greet,
@@ -392,7 +392,7 @@ if __name__ == "__main__":
             work_number=work_number,
             personal_number=personal_number,
             social_number=social_number,
-            cut_phone=cut_phone,
+            cut_number=cut_number,
             cb_hotel=cb_hotel,
             cb_language=cb_language,
             cb_type=cb_type,
