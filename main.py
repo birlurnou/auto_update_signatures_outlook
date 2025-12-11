@@ -282,6 +282,8 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 
 def save_signature_to_file(html_content, signature_name, global_id, user_global_id):
     signatures_path = rf'C:\Users\{user_global_id}\AppData\Roaming\Microsoft\Signatures'
+    if not os.path.exists(signatures_path):
+        os.makedirs(signatures_path)
     filename = f'{global_id}-{signature_name}.htm'
     full_path = os.path.join(signatures_path, filename)
     with open(full_path, 'w', encoding='windows-1251') as f:
