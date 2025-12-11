@@ -289,11 +289,34 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     print(f'Подпись сохранена по пути: {full_path}')
     webbrowser.open(os.path.abspath(full_path))
 
+def set_outlook_signature(sid, signature_name, global_id):
+    reg_path = rf"{sid}\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\Outlook\9375CFF0413111d3B88A00104B2A6676\00000002"
+    signature_name = f'{global_id}-{signature_name}'
+    try:
+        key = winreg.OpenKey(winreg.HKEY_USERS, reg_path, 0, winreg.KEY_WRITE)
+
+        winreg.SetValueEx(key, "New Signature", 0, winreg.REG_SZ, signature_name)
+        winreg.SetValueEx(key, "Reply-Forward Signature", 0, winreg.REG_SZ, signature_name)
+
+        winreg.CloseKey(key)
+        print(f"Подпись '{signature_name}' успешно установлена")
+        return True
+
+    except FileNotFoundError:
+        print(f"Путь в реестре не найден: {reg_path}")
+        return False
+    except PermissionError:
+        print("Ошибка прав доступа. Запустите скрипт от имени администратора")
+        return False
+    except Exception as e:
+        print(f"Ошибка при записи в реестр: {e}")
+        return False
+
 
 if __name__ == "__main__":
 
     user_global_id = os.getlogin() # os.environ['USERNAME']
-    
+
     user_info = win32security.LookupAccountName(None, os.getlogin())
     sid = win32security.ConvertSidToStringSid(user_info[0])
 
@@ -394,3 +417,5 @@ if __name__ == "__main__":
 
         if signature_html:
             save_signature_to_file(signature_html, signature_name, global_id, user_global_id)
+            if conf_main_sig == 1:
+                set_outlook_signature(sid, signature_name, global_id)
