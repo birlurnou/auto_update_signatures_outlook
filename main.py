@@ -1,8 +1,9 @@
 import os
 import webbrowser
+import win32security
+import winreg
 
-
-def create_email_signature(global_id, first_name, last_name, job, email, greet,
+def create_email_signature(first_name, last_name, job, email, greet,
                             work_number, personal_number, social_number, cut_phone,
                             cb_hotel, cb_language, cb_type,
                             banner_path, banner_url, site_url,
@@ -291,9 +292,12 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
 
 if __name__ == "__main__":
 
-    user_global_id = os.environ['USERNAME']
-    user_sid = os.environ
-    print(user_sid)
+    user_global_id = os.getlogin() # os.environ['USERNAME']
+    
+    user_info = win32security.LookupAccountName(None, os.getlogin())
+    sid = win32security.ConvertSidToStringSid(user_info[0])
+
+    print(sid)
 
     first = [
         'base',                                     # signature_name
@@ -339,7 +343,8 @@ if __name__ == "__main__":
         conf_phone_numbers,
         conf_mail,
         conf_banner,
-        conf_site
+        conf_site,
+        conf_main_sig
          ) = user
 
         values = [
@@ -354,14 +359,14 @@ if __name__ == "__main__":
             conf_phone_numbers,
             conf_mail,
             conf_banner,
-            conf_site
+            conf_site,
+            conf_main_sig
         ]
 
         for i in values:
             print(i)
 
         signature_html = create_email_signature(
-            global_id=global_id,
             first_name=first_name,
             last_name=last_name,
             job=job,
