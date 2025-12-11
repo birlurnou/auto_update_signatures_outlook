@@ -17,7 +17,7 @@ Script for auto update signature on Outlook
 
 * Implement a small user interface to control the stability of the user
 
-* Implement smart storage and replacement.htm files
+* ~~Implement smart storage and replacement.htm files~~
 
 *gui.py*
 
