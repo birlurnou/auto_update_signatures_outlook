@@ -208,13 +208,13 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
 
                 with open(banner_path, 'rb'):
                     banner_html = f'''
-                    <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
-                    line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
-                    line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
 
-                    <p class=MsoNormal><a href="{banner_url}">
-                    <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
-                    </a><o:p></o:p></p>'''
+<p class=MsoNormal><a href="{banner_url}">
+<img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
+</a><o:p></o:p></p>'''
 
 
     # site
@@ -350,14 +350,14 @@ if __name__ == "__main__":
         r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
         r'https://ya.ru',                           # banner_url
         r'https://ya.ru',                           # site_url
-        2,                                          # conf_greet (1 - enable, 2 - disable)
+        1,                                          # conf_greet (1 - enable, 2 - disable)
         1,                                          # conf_fname (1 - enable, 2 - disable)
         1,                                          # conf_job (1 - enable, 2 - disable)
         1,                                          # conf_hotel (1 - enable, 2 - disable)
         1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
         1,                                          # conf_mail (1 - enable, 2 - disable)
         1,                                          # conf_banner (1 - enable, 2 - disable)
-        2,                                          # conf_site (1 - enable, 2 - disable)
+        1,                                          # conf_site (1 - enable, 2 - disable)
         1,                                          # conf_main_sig (1 - enable, 2 - disable)
     ]
 
