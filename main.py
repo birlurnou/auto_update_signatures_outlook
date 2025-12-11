@@ -279,9 +279,9 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
     return html_signature
 
 
-def save_signature_to_file(html_content, global_id, user_global_id):
+def save_signature_to_file(html_content, signature_name, global_id, user_global_id):
     signatures_path = rf'C:\Users\{user_global_id}\AppData\Roaming\Microsoft\Signatures'
-    filename = f'{global_id}.htm'
+    filename = f'{global_id}-{signature_name}.htm'
     full_path = os.path.join(signatures_path, filename)
     with open(full_path, 'w', encoding='windows-1251') as f:
         f.write(html_content)
@@ -292,8 +292,11 @@ def save_signature_to_file(html_content, global_id, user_global_id):
 if __name__ == "__main__":
 
     user_global_id = os.environ['USERNAME']
+    user_sid = os.environ
+    print(user_sid)
 
     first = [
+        'base',                                     # signature_name
         '1234567',                                  # global_id
         'Иван',                                     # first_name
         'Иванов',                                   # last_name
@@ -318,13 +321,14 @@ if __name__ == "__main__":
         1,                                          # conf_mail (1 - enable, 2 - disable)
         1,                                          # conf_banner (1 - enable, 2 - disable)
         1,                                          # conf_site (1 - enable, 2 - disable)
+        1,                                          # conf_main_sig (1 - enable, 2 - disable)
     ]
 
     users = [first, ]
 
     for user in users:
 
-        (global_id, first_name, last_name, job, email, greet,
+        (signature_name, global_id, first_name, last_name, job, email, greet,
         work_number, personal_number, social_number, cut_phone,
         cb_hotel, cb_language, cb_type,
         banner_path, banner_url, site_url,
@@ -335,11 +339,11 @@ if __name__ == "__main__":
         conf_phone_numbers,
         conf_mail,
         conf_banner,
-        conf_site,
-        ) = user
+        conf_site
+         ) = user
 
         values = [
-            global_id, first_name, last_name, job, email, greet,
+            signature_name, global_id, first_name, last_name, job, email, greet,
             work_number, personal_number, social_number, cut_phone,
             cb_hotel, cb_language, cb_type,
             banner_path, banner_url, site_url,
@@ -350,7 +354,7 @@ if __name__ == "__main__":
             conf_phone_numbers,
             conf_mail,
             conf_banner,
-            conf_site,
+            conf_site
         ]
 
         for i in values:
@@ -384,4 +388,4 @@ if __name__ == "__main__":
         )
 
         if signature_html:
-            save_signature_to_file(signature_html, global_id, user_global_id)
+            save_signature_to_file(signature_html, signature_name, global_id, user_global_id)
