@@ -286,7 +286,7 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     full_path = os.path.join(signatures_path, filename)
     with open(full_path, 'w', encoding='windows-1251') as f:
         f.write(html_content)
-    print(f'Подпись сохранена по пути: {full_path}')
+    print(full_path)
     webbrowser.open(os.path.abspath(full_path))
 
 def set_outlook_signature(sid, signature_name, global_id):
@@ -299,18 +299,10 @@ def set_outlook_signature(sid, signature_name, global_id):
         winreg.SetValueEx(key, "Reply-Forward Signature", 0, winreg.REG_SZ, signature_name)
 
         winreg.CloseKey(key)
-        print(f"Подпись '{signature_name}' успешно установлена")
         return True
 
-    except FileNotFoundError:
-        print(f"Путь в реестре не найден: {reg_path}")
-        return False
-    except PermissionError:
-        print("Ошибка прав доступа. Запустите скрипт от имени администратора")
-        return False
-    except Exception as e:
-        print(f"Ошибка при записи в реестр: {e}")
-        return False
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
@@ -331,7 +323,7 @@ if __name__ == "__main__":
         'ivan.ivanov@example.ru',                   # email
         'С уважением',                              # greet
         '+7 343 123 1234',                          # work_number
-        '+7 963 123 1234',                          # presonal_number
+        '+7 963 123 1234',                          # personal_number
         '',                                         # social_number
         '+7 963 123 1234 (*1234 / 61234)',          # cut_phone
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
@@ -387,7 +379,7 @@ if __name__ == "__main__":
         ]
 
         for i in values:
-            print(i)
+            ... # print(i)
 
         signature_html = create_email_signature(
             first_name=first_name,
