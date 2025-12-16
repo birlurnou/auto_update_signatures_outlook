@@ -338,7 +338,7 @@ if __name__ == "__main__":
         '+7 963 123 1234 (*1234 / 61234)',          # cut_number
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
         1,                                          # cb_language (1 - ru, 2 - en)
-        1,                                          # cb_type (1 - full, 2 - cut)
+        2,                                          # cb_type (1 - full, 2 - cut)
         r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
         r'https://ya.ru',                           # banner_url
         r'https://ya.ru',                           # site_url
