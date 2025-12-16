@@ -22,66 +22,67 @@ def create_email_signature(first_name, last_name, job, email, greet,
     # read ini file
     config = configparser.ConfigParser()
     config.read('config.ini')
-    ...
+    # [hotel]
+    color_rg = config['hotel']['color_rg']
+    color_ze = config['hotel']['color_ze']
+    address_rg_ru = config['hotel']['address_rg_ru']
+    address_ze_ru = config['hotel']['address_ze_ru']
+    address_rg_en = config['hotel']['address_rg_en']
+    address_ze_en = config['hotel']['address_ze_en']
+    hotel_name_rg_ru = config['hotel']['hotel_name_rg_ru']
+    hotel_name_ze_ru = config['hotel']['hotel_name_ze_ru']
+    hotel_name_rg_en = config['hotel']['hotel_name_rg_en']
+    hotel_name_ze_en = config['hotel']['hotel_name_ze_en']
 
     # color and config from hotel
     hotel_config = None
     if cb_language == 1:
         hotel_config = {
             1: {
-                'color': '#441D61',
-                'address': '620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8',
-                'hotel_name': ['Хаятт Ридженси Екатеринбург']
+                'color': f'{color_rg}',
+                'address': f'{address_rg_ru}',
+                'hotel_name': [f'{hotel_name_rg_ru}']
             },
             2: {
-                'color': '#ED7D31',
-                'address': '620028, Россия, Екатеринбург, ул. Репина 1/2',
-                'hotel_name': ['Хаятт Плейс Екатеринбург']
+                'color': f'{color_ze}',
+                'address': f'{address_ze_ru}',
+                'hotel_name': [f'{hotel_name_ze_ru}']
             },
             3: {
-                'color': '#441D61',
-                'address': '620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8',
-                'hotel_name': ['Хаятт Ридженси Екатеринбург', 'Хаятт Плейс Екатеринбург']
+                'color': f'{color_rg}',
+                'address': f'{address_rg_ru}',
+                'hotel_name': [f'{hotel_name_rg_ru}', f'{hotel_name_ze_ru}']
             }
         }
     elif cb_language == 2:
         hotel_config = {
             1: {
-                'color': '#441D61',
-                'address': '620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8',
-                'hotel_name': ['Hyatt Regency Yekaterinburg']
+                'color': f'{color_rg}',
+                'address': f'{address_rg_en}',
+                'hotel_name': [f'{hotel_name_rg_en}']
             },
             2: {
-                'color': '#ED7D31',
-                'address': '620028, Russia, Yekaterinburg, Repina str. 1/2',
-                'hotel_name': ['Hyatt Place Yekaterinburg']
+                'color': f'{color_ze}',
+                'address': f'{address_ze_en}',
+                'hotel_name': [f'{hotel_name_ze_en}']
             },
             3: {
-                'color': '#441D61',
-                'address': '620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8',
-                'hotel_name': ['Hyatt Regency Yekaterinburg', 'Hyatt Place Yekaterinburg']
+                'color': f'{color_rg}',
+                'address': f'{address_rg_en}',
+                'hotel_name': [f'{hotel_name_rg_en}', f'{hotel_name_ze_en}']
             }
         }
     if not hotel_config:
         return None
-    config = hotel_config.get(cb_hotel, None)
+    config_hotel = hotel_config.get(cb_hotel, None)
     
     # full name
     full_name = f'{first_name} {last_name}'.upper()
 
-    # telephone numbers
-    try:
-        with open('tags.txt', 'r', encoding='utf-8') as f:
-            tags = []
-            for line in f:
-                if not line.startswith('#'):
-                    tags.append(line.rstrip('\n'))
-                    if len(tags) == 3:
-                        break
-        work_tag, pers_tag, soc_tag = tags[0], tags[1], tags[2] if len(tags) == 3 else ['', '', '']
-    except Exception:
-        work_tag, pers_tag, soc_tag = 'T', 'M', 'WA'
-
+    # [phones]
+    work_tag = config['phones']['work_tag']
+    pers_tag = config['phones']['pers_tag']
+    soc_tag = config['phones']['soc_tag']
 
     phones_html = ''
 
@@ -91,7 +92,7 @@ def create_email_signature(first_name, last_name, job, email, greet,
         if work_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'> {work_tag}&nbsp;&nbsp;</span><span style='font-size:10.0pt;
 font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
     
@@ -99,30 +100,30 @@ font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:
         if personal_number and social_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {pers_tag}&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {pers_tag}&nbsp;</span>
 <span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp;</span>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
 <span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
 <o:p></o:p>
 </p>'''
         elif personal_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'>{pers_tag}&nbsp;</span><span style='font-size:10.0pt;font-family:
 "Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         elif social_number and not work_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'>{soc_tag}</span><span style='font-size:10.0pt;font-family:
 "Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         else:
             phones_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {work_tag}&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {work_tag}&nbsp;</span>
 <span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp;</span>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
 <span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
 <o:p></o:p>
 </p>'''
@@ -143,7 +144,7 @@ color:black'><o:p>&nbsp;</o:p></span></p>'''
     if conf_fname == 1:
         full_name_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:10.0pt;
-line-height:120%;font-family:"Arial",sans-serif;color:{config["color"]};text-transform:
+line-height:120%;font-family:"Arial",sans-serif;color:{config_hotel["color"]};text-transform:
 uppercase'>{full_name}<o:p></o:p></span></b></p>'''
 
     # job
@@ -164,13 +165,13 @@ Calibri'><o:p>&nbsp;</o:p></span></p>'''
     hotel_and_address = ''
     space_after_address = ''
     if conf_hotel == 1:
-        for item in config["hotel_name"]:
+        for item in config_hotel["hotel_name"]:
             hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif;
-color:{config["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>'''
+color:{config_hotel["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>'''
         hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif'>
-{config["address"]}<o:p></o:p></span></p>'''
+{config_hotel["address"]}<o:p></o:p></span></p>'''
 
         # space_after_address
         space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
@@ -181,7 +182,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
     email_html = ''
     if conf_mail == 1:
         email_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
-<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}'> E&nbsp;&nbsp;&nbsp;</span><span
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}'> E&nbsp;&nbsp;&nbsp;</span><span
 lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
 EN-US'><a href="mailto:{email}">{email}</a></span><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>'''
@@ -225,7 +226,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
         
-<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config["color"]};'>
+<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config_hotel["color"]};'>
     <a href='{site_url}' style='color: inherit; text-decoration: none;'>{site_url}</a>
 </p>'''
 
@@ -235,7 +236,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
         hotel_and_address =  ''
         space_after_address = ''
         phones_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]};
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'></span><span style='font-size:10.0pt;
 font-family:"Arial",sans-serif;color:black'>{cut_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         email_html = ''
@@ -299,9 +300,7 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     # read ini file
     config = configparser.ConfigParser()
     config.read('config.ini')
-    ...
-
-    signatures_path = rf'C:\Users\{user_global_id}\AppData\Roaming\Microsoft\Signatures'
+    signatures_path = rf'C:\Users\{user_global_id}' + config['settings']['signatures_path']
     if not os.path.exists(signatures_path):
         os.makedirs(signatures_path)
     filename = f'{global_id}-{signature_name}.htm'
@@ -315,9 +314,7 @@ def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
     config = configparser.ConfigParser()
     config.read('config.ini')
-    ...
-
-    reg_path = rf'{sid}\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\Outlook\9375CFF0413111d3B88A00104B2A6676\00000002'
+    reg_path = rf'{sid}' + config['settings']['reg_path']
     signature_name = f'{global_id}-{signature_name}'
     try:
         key = winreg.OpenKey(winreg.HKEY_USERS, reg_path, 0, winreg.KEY_WRITE)
@@ -336,7 +333,6 @@ class DatabaseManager:
         # read ini file
         config = configparser.ConfigParser()
         config.read('config.ini')
-        ...
         self.SQL_SERVER = config['database']['SQL_SERVER']
         self.SQL_DB = config['database']['SQL_DB']
         self.SQL_USER = config['database']['SQL_USER']
@@ -427,7 +423,7 @@ if __name__ == "__main__":
         '+7 963 123 1234 (*1234 / 61234)',          # cut_number
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
         1,                                          # cb_language (1 - ru, 2 - en)
-        2,                                          # cb_type (1 - full, 2 - cut)
+        1,                                          # cb_type (1 - full, 2 - cut)
         r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
         r'https://ya.ru',                           # banner_url
         r'https://ya.ru',                           # site_url
