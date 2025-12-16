@@ -378,14 +378,14 @@ class DatabaseManager:
         query = 'SELECT * FROM users WHERE user_id = ?'
         return self.execute_query(query, [user_id], fetch_one=True)
 
-    def insert(self, user_data):
+    def insert_signature(self, user_data):
         query = '''
         INSERT INTO ... (..., ..., ...)
         VALUES (?, ?, ?)
         '''
         return self.execute_query(query, user_data, commit=True)
 
-    def update(self, user_data):
+    def update_signature(self, user_data):
         query = '''
         UPDATE ...
         SET ...=?, ...=?
@@ -393,8 +393,9 @@ class DatabaseManager:
         '''
         return self.execute_query(query, user_data, commit=True)
 
-    def delete(self, user_data):
-        ...
+    def delete_signature(self, user_data):
+        query = f'DELETE FROM ... WHERE ...=?'
+        return self.execute_query(query, user_data, commit=True)
 
 
 if __name__ == "__main__":
