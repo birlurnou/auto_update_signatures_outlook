@@ -91,8 +91,8 @@ def create_email_signature(first_name, last_name, job, email, greet,
     # work phones
         if work_number:
             phones_html += f'''
-<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'> {work_tag}&nbsp;&nbsp;</span><span style='font-size:10.0pt;
 font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
     
@@ -118,11 +118,11 @@ mso-bidi-font-weight:bold'>{pers_tag}&nbsp;</span><span style='font-size:10.0pt;
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'>{soc_tag}</span><span style='font-size:10.0pt;font-family:
 "Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
-        else:
+        elif social_number != '':
             phones_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {work_tag}&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
 <span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
 <o:p></o:p>
@@ -295,7 +295,6 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 
     return html_signature
 
-
 def save_signature_to_file(html_content, signature_name, global_id, user_global_id):
     # read ini file
     config = configparser.ConfigParser()
@@ -398,7 +397,7 @@ class DatabaseManager:
         return self.execute_query(query, user_data, commit=True)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     user_global_id = os.getlogin() # os.environ['USERNAME']
 
@@ -418,9 +417,9 @@ if __name__ == "__main__":
         'Специалист по информационным системам',    # job
         'ivan.ivanov@example.ru',                   # email
         'С уважением',                              # greet
-        '+7 343 123 1234',                          # work_number
-        '+7 963 123 1234',                          # personal_number
-        '',                                         # social_number
+        '',                          # work_number
+        '+7 343 123 1234',                          # personal_number
+        '+7 343 123 1234',                                         # social_number
         '+7 963 123 1234 (*1234 / 61234)',          # cut_number
         3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
         1,                                          # cb_language (1 - ru, 2 - en)
