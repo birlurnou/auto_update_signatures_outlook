@@ -1,5 +1,5 @@
-# Automatic update of Outlook signature
-Script for auto update signature on Outlook
+# Automatic update of Outlook signature in a corporate environment
+Script for auto update signature on Outlook in a corporate environment
 
 **How the script works**
 
@@ -11,13 +11,17 @@ Script for auto update signature on Outlook
 
 *main.py*
 
-* Implement data collection from SQL
+* Implement data retrieval from SQL **50%**
 
 * ~~Implement the .htm signature file generation process~~
 
-* Implement a small user interface to control the stability of the user
-
 * ~~Implement smart storage and replacement.htm files~~
+
+* ~~Implement adding a signature to the registry~~
+
+* ~~Implement signature settings via a config file~~ **99%** ?
+
+* Implement a small user interface to control the stability of the user
 
 *gui.py*
 
