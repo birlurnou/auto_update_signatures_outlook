@@ -2,6 +2,8 @@ import os
 import webbrowser
 import win32security
 import winreg
+import pyodbc
+import configparser
 
 def create_email_signature(first_name, last_name, job, email, greet,
                             work_number, personal_number, social_number, cut_number,
@@ -17,42 +19,47 @@ def create_email_signature(first_name, last_name, job, email, greet,
                             conf_site,
                            ):
 
+    # read ini file
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    ...
+
     # color and config from hotel
     hotel_config = None
     if cb_language == 1:
         hotel_config = {
             1: {
-                "color": "#441D61",
-                "address": "620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8",
-                "hotel_name": ["Хаятт Ридженси Екатеринбург"]
+                'color': '#441D61',
+                'address': '620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8',
+                'hotel_name': ['Хаятт Ридженси Екатеринбург']
             },
             2: {
-                "color": "#ED7D31",
-                "address": "620028, Россия, Екатеринбург, ул. Репина 1/2",
-                "hotel_name": ["Хаятт Плейс Екатеринбург"]
+                'color': '#ED7D31',
+                'address': '620028, Россия, Екатеринбург, ул. Репина 1/2',
+                'hotel_name': ['Хаятт Плейс Екатеринбург']
             },
             3: {
-                "color": "#441D61",
-                "address": "620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8",
-                "hotel_name": ["Хаятт Ридженси Екатеринбург", "Хаятт Плейс Екатеринбург"]
+                'color': '#441D61',
+                'address': '620014, Россия, Екатеринбург, ул. Бориса Ельцина, 8',
+                'hotel_name': ['Хаятт Ридженси Екатеринбург', 'Хаятт Плейс Екатеринбург']
             }
         }
     elif cb_language == 2:
         hotel_config = {
             1: {
-                "color": "#441D61",
-                "address": "620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8",
-                "hotel_name": ["Hyatt Regency Yekaterinburg"]
+                'color': '#441D61',
+                'address': '620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8',
+                'hotel_name': ['Hyatt Regency Yekaterinburg']
             },
             2: {
-                "color": "#ED7D31",
-                "address": "620028, Russia, Yekaterinburg, Repina str. 1/2",
-                "hotel_name": ["Hyatt Place Yekaterinburg"]
+                'color': '#ED7D31',
+                'address': '620028, Russia, Yekaterinburg, Repina str. 1/2',
+                'hotel_name': ['Hyatt Place Yekaterinburg']
             },
             3: {
-                "color": "#441D61",
-                "address": "620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8",
-                "hotel_name": ["Hyatt Regency Yekaterinburg", "Hyatt Place Yekaterinburg"]
+                'color': '#441D61',
+                'address': '620014, Russia, Yekaterinburg, Borisa Yeltsina str. 8',
+                'hotel_name': ['Hyatt Regency Yekaterinburg', 'Hyatt Place Yekaterinburg']
             }
         }
     if not hotel_config:
@@ -289,6 +296,11 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 
 
 def save_signature_to_file(html_content, signature_name, global_id, user_global_id):
+    # read ini file
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    ...
+
     signatures_path = rf'C:\Users\{user_global_id}\AppData\Roaming\Microsoft\Signatures'
     if not os.path.exists(signatures_path):
         os.makedirs(signatures_path)
@@ -300,13 +312,18 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     webbrowser.open(os.path.abspath(full_path))
 
 def set_outlook_signature(sid, signature_name, global_id):
-    reg_path = rf"{sid}\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\Outlook\9375CFF0413111d3B88A00104B2A6676\00000002"
+    # read ini file
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    ...
+
+    reg_path = rf'{sid}\SOFTWARE\Microsoft\Office\16.0\Outlook\Profiles\Outlook\9375CFF0413111d3B88A00104B2A6676\00000002'
     signature_name = f'{global_id}-{signature_name}'
     try:
         key = winreg.OpenKey(winreg.HKEY_USERS, reg_path, 0, winreg.KEY_WRITE)
 
-        winreg.SetValueEx(key, "New Signature", 0, winreg.REG_SZ, signature_name)
-        winreg.SetValueEx(key, "Reply-Forward Signature", 0, winreg.REG_SZ, signature_name)
+        winreg.SetValueEx(key, 'New Signature', 0, winreg.REG_SZ, signature_name)
+        winreg.SetValueEx(key, 'Reply-Forward Signature', 0, winreg.REG_SZ, signature_name)
 
         winreg.CloseKey(key)
         return True
@@ -314,10 +331,82 @@ def set_outlook_signature(sid, signature_name, global_id):
     except Exception:
         pass
 
+class DatabaseManager:
+    def __init__(self):
+        # read ini file
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        ...
+        self.SQL_SERVER = config['database']['SQL_SERVER']
+        self.SQL_DB = config['database']['SQL_DB']
+        self.SQL_USER = config['database']['SQL_USER']
+        self.SQL_PASSWORD = config['database']['SQL_PASSWORD']
+        self.conn_str = f'DRIVER={{SQL Server}};SERVER={self.SQL_SERVER};DATABASE={self.SQL_DB};UID={self.SQL_USER};PWD={self.SQL_PASSWORD}'
+
+    def get_connection(self):
+        try:
+            return pyodbc.connect(self.conn_str)
+        except pyodbc.Error as e:
+            print(f'Connection error: {e}')
+            return None
+
+    def execute_query(self, query, params=None, fetch_one=False, fetch_all=False, commit=False):
+        conn = None
+        cursor = None
+        try:
+            conn = self.get_connection()
+            if not conn:
+                return None
+            cursor = conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            if commit:
+                conn.commit()
+                return True
+            if fetch_one:
+                return cursor.fetchone()
+            elif fetch_all:
+                return cursor.fetchall()
+            return None
+        except pyodbc.Error as e:
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    def get_user_data(self, user_id):
+        query = 'SELECT * FROM users WHERE user_id = ?'
+        return self.execute_query(query, [user_id], fetch_one=True)
+
+    def insert(self, user_data):
+        query = '''
+        INSERT INTO ... (..., ..., ...)
+        VALUES (?, ?, ?)
+        '''
+        return self.execute_query(query, user_data, commit=True)
+
+    def update(self, user_data):
+        query = '''
+        UPDATE ...
+        SET ...=?, ...=?
+        WHERE ...=?
+        '''
+        return self.execute_query(query, user_data, commit=True)
+
+    def delete(self, user_data):
+        ...
+
 
 if __name__ == "__main__":
 
     user_global_id = os.getlogin() # os.environ['USERNAME']
+
+    db = DatabaseManager()
+    print(db.get_user_data(user_global_id))
 
     user_info = win32security.LookupAccountName(None, os.getlogin())
     sid = win32security.ConvertSidToStringSid(user_info[0])
