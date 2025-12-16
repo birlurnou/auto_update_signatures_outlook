@@ -126,8 +126,8 @@ mso-bidi-font-weight:bold'>{soc_tag}</span><span style='font-size:10.0pt;font-fa
 <p class=MsoNormal><span style='font-size:10.0pt;font-family:"Arial",sans-serif;
 color:black'>{greet},<o:p></o:p></span></p>
 <p class=MsoNormal><span style='font-size:10.0pt;font-family:"Arial",sans-serif;
-color:black'><o:p>&nbsp;</o:p></span></p>
-'''
+color:black'><o:p>&nbsp;</o:p></span></p>'''
+
     else:
         greeting = ''
 
@@ -137,8 +137,7 @@ color:black'><o:p>&nbsp;</o:p></span></p>
         full_name_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:10.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:{config["color"]};text-transform:
-uppercase'>{full_name}<o:p></o:p></span></b></p>
-'''
+uppercase'>{full_name}<o:p></o:p></span></b></p>'''
 
     # job
     job_html = ''
@@ -147,14 +146,12 @@ uppercase'>{full_name}<o:p></o:p></span></b></p>
         job_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><span style='font-size:10.0pt;mso-bidi-font-size:
 9.0pt;line-height:120%;font-family:"Arial",sans-serif;mso-bidi-font-weight:
-bold'>{job.capitalize()}<o:p></o:p></span></p>
-'''
+bold'>{job.capitalize()}<o:p></o:p></span></p>'''
 
         # space_after_job
         space_after_job = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='mso-ascii-font-family:Calibri;mso-hansi-font-family:Calibri;mso-bidi-font-family:
-Calibri'><o:p>&nbsp;</o:p></span></p>
-'''
+Calibri'><o:p>&nbsp;</o:p></span></p>'''
 
     # hotel and address
     hotel_and_address = ''
@@ -163,18 +160,15 @@ Calibri'><o:p>&nbsp;</o:p></span></p>
         for item in config["hotel_name"]:
             hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif;
-color:{config["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>
-'''
-        hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+color:{config["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>'''
+            hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif'>
-{config["address"]}<o:p></o:p></span></p>
-'''
+{config["address"]}<o:p></o:p></span></p>'''
 
-        # space_after_address
-        space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+            # space_after_address
+            space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
-line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
-'''
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>'''
 
     # email
     email_html = ''
@@ -183,8 +177,8 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config["color"]}'> E&nbsp;&nbsp;&nbsp;</span><span
 lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
 EN-US'><a href="mailto:{email}">{email}</a></span><span
-style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>
-'''
+style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>'''
+
     # banner
     banner_html = ''
     if conf_banner == 1:
@@ -216,7 +210,6 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
 </a><o:p></o:p></p>'''
 
-
     # site
     site_html = ''
     if conf_site == 1:
@@ -227,8 +220,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
         
 <p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config["color"]};'>
     <a href='{site_url}' style='color: inherit; text-decoration: none;'>{site_url}</a>
-</p>
-'''
+</p>'''
 
     # full html
     if cb_type != 1:
