@@ -189,7 +189,7 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
 
     # banner
     banner_html = ''
-    if conf_banner == 1:
+    if conf_banner == 1 and banner_path:
         if banner_path[-3:] == 'png' or banner_path[-3:] == 'jpg':
             try:
                 with open(banner_path, 'rb'):
@@ -238,7 +238,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
         phones_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'></span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'>{cut_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+font-family:"Arial",sans-serif;color:black'>{cut_number if cut_number else ''}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         email_html = ''
     html_signature = f'''<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
