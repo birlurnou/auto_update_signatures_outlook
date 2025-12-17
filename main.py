@@ -417,7 +417,7 @@ if __name__ == '__main__':
         'Специалист по информационным системам',    # job
         'ivan.ivanov@example.ru',                   # email
         'С уважением',                              # greet
-        '',                          # work_number
+        '+7 343 123 1234',                          # work_number
         '+7 343 123 1234',                          # personal_number
         '+7 343 123 1234',                                         # social_number
         '+7 963 123 1234 (*1234 / 61234)',          # cut_number

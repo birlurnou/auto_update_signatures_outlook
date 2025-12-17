@@ -3,6 +3,74 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+class DatabaseManager:
+    def __init__(self):
+        # read ini file
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        self.SQL_SERVER = config['database']['SQL_SERVER']
+        self.SQL_DB = config['database']['SQL_DB']
+        self.SQL_USER = config['database']['SQL_USER']
+        self.SQL_PASSWORD = config['database']['SQL_PASSWORD']
+        self.conn_str = f'DRIVER={{SQL Server}};SERVER={self.SQL_SERVER};DATABASE={self.SQL_DB};UID={self.SQL_USER};PWD={self.SQL_PASSWORD}'
+
+    def get_connection(self):
+        try:
+            return pyodbc.connect(self.conn_str)
+        except pyodbc.Error as e:
+            print(f'Connection error: {e}')
+            return None
+
+    def execute_query(self, query, params=None, fetch_one=False, fetch_all=False, commit=False):
+        conn = None
+        cursor = None
+        try:
+            conn = self.get_connection()
+            if not conn:
+                return None
+            cursor = conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            if commit:
+                conn.commit()
+                return True
+            if fetch_one:
+                return cursor.fetchone()
+            elif fetch_all:
+                return cursor.fetchall()
+            return None
+        except pyodbc.Error as e:
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    def get_user_data(self, user_id):
+        query = 'SELECT * FROM users WHERE user_id = ?'
+        return self.execute_query(query, [user_id], fetch_one=True)
+
+    def insert_signature(self, user_data):
+        query = '''
+        INSERT INTO ... (..., ..., ...)
+        VALUES (?, ?, ?)
+        '''
+        return self.execute_query(query, user_data, commit=True)
+
+    def update_signature(self, user_data):
+        query = '''
+        UPDATE ...
+        SET ...=?, ...=?
+        WHERE ...=?
+        '''
+        return self.execute_query(query, user_data, commit=True)
+
+    def delete_signature(self, user_data):
+        query = f'DELETE FROM ... WHERE ...=?'
+        return self.execute_query(query, user_data, commit=True)
 
 class SignatureApp(ctk.CTk):
     def __init__(self):
