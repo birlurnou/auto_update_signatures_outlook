@@ -189,7 +189,7 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
 
     # banner
     banner_html = ''
-    if conf_banner == 1:
+    if conf_banner == 1 and banner_path:
         if banner_path[-3:] == 'png' or banner_path[-3:] == 'jpg':
             try:
                 with open(banner_path, 'rb'):
@@ -238,7 +238,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
         phones_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'></span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'>{cut_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+font-family:"Arial",sans-serif;color:black'>{cut_number if cut_number else ''}&nbsp;&nbsp; <o:p></o:p></span></p>'''
         email_html = ''
     html_signature = f'''<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
@@ -374,55 +374,58 @@ class DatabaseManager:
                 conn.close()
 
     def get_user_data(self, user_id):
-        query = 'SELECT * FROM users WHERE user_id = ?'
-        return self.execute_query(query, [user_id], fetch_one=True)
+        query = 'SELECT * FROM signatures WHERE global_id = ?'
+        return self.execute_query(query, [user_id], fetch_all=True)
 
 if __name__ == '__main__':
 
     user_global_id = os.getlogin() # os.environ['USERNAME']
 
     db = DatabaseManager()
+    all_users_data = db.get_user_data(user_global_id)
+
+    users = []
+    if all_users_data:
+        for row in all_users_data:
+            users.append(row)
+
     print(db.get_user_data(user_global_id))
 
+    # sid
     user_info = win32security.LookupAccountName(None, os.getlogin())
     sid = win32security.ConvertSidToStringSid(user_info[0])
+    # print(sid)
 
-    print(sid)
-
-    first = [
-        'base',                                     # signature_name
-        '1234567',                                  # global_id
-        'Иван',                                     # first_name
-        'Иванов',                                   # last_name
-        'Специалист по информационным системам',    # job
-        'ivan.ivanov@example.ru',                   # email
-        'С уважением',                              # greet
-        '+7 343 123 1234',                          # work_number
-        '+7 343 123 1234',                          # personal_number
-        '+7 343 123 1234',                                         # social_number
-        '+7 963 123 1234 (*1234 / 61234)',          # cut_number
-        3,                                          # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
-        1,                                          # cb_language (1 - ru, 2 - en)
-        1,                                          # cb_type (1 - full, 2 - cut)
-        r'D:\scripts\py\actual\auto_update_signatures_outlook\banner.jpg',  # banner_path
-        r'https://ya.ru',                           # banner_url
-        r'https://ya.ru',                           # site_url
-        1,                                          # conf_greet (1 - enable, 2 - disable)
-        1,                                          # conf_fname (1 - enable, 2 - disable)
-        1,                                          # conf_job (1 - enable, 2 - disable)
-        1,                                          # conf_hotel (1 - enable, 2 - disable)
-        1,                                          # conf_phone_numbers (1 - enable, 2 - disable)
-        1,                                          # conf_mail (1 - enable, 2 - disable)
-        1,                                          # conf_banner (1 - enable, 2 - disable)
-        1,                                          # conf_site (1 - enable, 2 - disable)
-        1,                                          # conf_main_sig (1 - enable, 2 - disable)
-    ]
-
-    users = [first, ]
+    # global_id
+    # signature_name
+    # first_name
+    # last_name
+    # job
+    # email
+    # greet
+    # work_number
+    # personal_number
+    # social_number
+    # cut_number
+    # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
+    # cb_language (1 - ru, 2 - en)
+    # cb_type (1 - full, 2 - cut)
+    # banner_path
+    # banner_url
+    # site_url
+    # conf_greet (1 - enable, 2 - disable)
+    # conf_fname (1 - enable, 2 - disable)
+    # conf_job (1 - enable, 2 - disable)
+    # conf_hotel (1 - enable, 2 - disable)
+    # conf_phone_numbers (1 - enable, 2 - disable)
+    # conf_mail (1 - enable, 2 - disable)
+    # conf_banner (1 - enable, 2 - disable)
+    # conf_site (1 - enable, 2 - disable)
+    # conf_main_sig (1 - enable, 2 - disable)
 
     for user in users:
 
-        (signature_name, global_id, first_name, last_name, job, email, greet,
+        (global_id, signature_name, first_name, last_name, job, email, greet,
         work_number, personal_number, social_number, cut_number,
         cb_hotel, cb_language, cb_type,
         banner_path, banner_url, site_url,
@@ -438,7 +441,7 @@ if __name__ == '__main__':
          ) = user
 
         values = [
-            signature_name, global_id, first_name, last_name, job, email, greet,
+            global_id, signature_name, first_name, last_name, job, email, greet,
             work_number, personal_number, social_number, cut_number,
             cb_hotel, cb_language, cb_type,
             banner_path, banner_url, site_url,
