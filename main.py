@@ -478,6 +478,11 @@ class TrayApp(QObject):
 def main_with_return():
     """Модифицированная функция main, которая возвращает список обновленных подписей"""
     user_global_id = os.getlogin()
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    list_users = config['users']['list_users']
+    if user_global_id not in list_users:
+        exit()
     updated_signatures = []  # Список для хранения имен обновленных подписей
 
     db = DatabaseManager()
