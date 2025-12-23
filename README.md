@@ -21,7 +21,7 @@ Script for auto update signature on Outlook in a corporate environment
 
 * ~~Implement signature settings via a config file~~
 
-* Implement a small user interface to control the stability of the user
+* ~~Implement a small user interface to control the stability of the user~~
 
 *gui.py*
 
