@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QSystemTrayIcon, QMenu, QAction)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QPixmap
 
 def create_email_signature(first_name, last_name, job, email, greet,
                             work_number, personal_number, social_number, cut_number,
@@ -312,8 +313,8 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     full_path = os.path.join(signatures_path, filename)
     with open(full_path, 'w', encoding='windows-1251') as f:
         f.write(html_content)
-    print(full_path)
-    webbrowser.open(os.path.abspath(full_path))
+    # print(full_path)
+    # webbrowser.open(os.path.abspath(full_path))
 
 def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
@@ -386,6 +387,7 @@ class DatabaseManager:
 
 class TrayApp(QObject):
     update_signal = pyqtSignal()
+    update_complete_signal = pyqtSignal(list)  # Новый сигнал для завершения обновления
 
     def __init__(self):
         super().__init__()
@@ -424,8 +426,9 @@ class TrayApp(QObject):
         self.tray_icon.setContextMenu(self.menu)
         self.tray_icon.show()
 
-        # Соединяем сигнал с основной функцией
+        # Соединяем сигналы
         self.update_signal.connect(self.run_main)
+        self.update_complete_signal.connect(self.show_update_notification)
 
     def auto_update(self):
         self.update_signatures()
@@ -437,8 +440,26 @@ class TrayApp(QObject):
         thread.start()
 
     def run_main(self):
-        # Запускаем оригинальную функцию main
-        main()
+        # Запускаем оригинальную функцию main и передаем результат
+        updated_signatures = main_with_return()
+        # Отправляем сигнал с результатами
+        self.update_complete_signal.emit(updated_signatures)
+
+    def show_update_notification(self, signatures):
+        """Показать уведомление о добавленных подписях"""
+        if signatures:
+            signature_names = "\n".join(signatures)
+            message = f"Обновлены подписи:\n{signature_names}"
+        else:
+            message = "Подписи не были обновлены"
+
+        # Показываем уведомление на 5 секунд
+        self.tray_icon.showMessage(
+            "Outlook Signature Updater",
+            message,
+            QSystemTrayIcon.NoIcon,
+            5000  # 5 секунд
+        )
 
     def exit_app(self):
         if self.timer.isActive():
@@ -453,9 +474,11 @@ class TrayApp(QObject):
         self.timer.start(30 * 60 * 1000)  # 30 минут
         sys.exit(self.app.exec_())
 
-def main():
 
-    user_global_id = os.getlogin() # os.environ['USERNAME']
+def main_with_return():
+    """Модифицированная функция main, которая возвращает список обновленных подписей"""
+    user_global_id = os.getlogin()
+    updated_signatures = []  # Список для хранения имен обновленных подписей
 
     db = DatabaseManager()
     all_users_data = db.get_user_data(user_global_id)
@@ -465,75 +488,27 @@ def main():
         for row in all_users_data:
             users.append(row)
 
-    print(db.get_user_data(user_global_id))
+    # print(db.get_user_data(user_global_id))
 
     # sid
     user_info = win32security.LookupAccountName(None, os.getlogin())
     sid = win32security.ConvertSidToStringSid(user_info[0])
-    # print(sid)
-
-    # global_id
-    # signature_name
-    # first_name
-    # last_name
-    # job
-    # email
-    # greet
-    # work_number
-    # personal_number
-    # social_number
-    # cut_number
-    # cb_hotel (1 - Hyatt Regency , 2 - Hyatt Place, 3 - both)
-    # cb_language (1 - ru, 2 - en)
-    # cb_type (1 - full, 2 - cut)
-    # banner_path
-    # banner_url
-    # site_url
-    # conf_greet (1 - enable, 2 - disable)
-    # conf_fname (1 - enable, 2 - disable)
-    # conf_job (1 - enable, 2 - disable)
-    # conf_hotel (1 - enable, 2 - disable)
-    # conf_phone_numbers (1 - enable, 2 - disable)
-    # conf_mail (1 - enable, 2 - disable)
-    # conf_banner (1 - enable, 2 - disable)
-    # conf_site (1 - enable, 2 - disable)
-    # conf_main_sig (1 - enable, 2 - disable)
 
     for user in users:
-
         (global_id, signature_name, first_name, last_name, job, email, greet,
-        work_number, personal_number, social_number, cut_number,
-        cb_hotel, cb_language, cb_type,
-        banner_path, banner_url, site_url,
-        conf_greet,
-        conf_fname,
-        conf_job,
-        conf_hotel,
-        conf_phone_numbers,
-        conf_mail,
-        conf_banner,
-        conf_site,
-        conf_main_sig
+         work_number, personal_number, social_number, cut_number,
+         cb_hotel, cb_language, cb_type,
+         banner_path, banner_url, site_url,
+         conf_greet,
+         conf_fname,
+         conf_job,
+         conf_hotel,
+         conf_phone_numbers,
+         conf_mail,
+         conf_banner,
+         conf_site,
+         conf_main_sig
          ) = user
-
-        values = [
-            global_id, signature_name, first_name, last_name, job, email, greet,
-            work_number, personal_number, social_number, cut_number,
-            cb_hotel, cb_language, cb_type,
-            banner_path, banner_url, site_url,
-            conf_greet,
-            conf_fname,
-            conf_job,
-            conf_hotel,
-            conf_phone_numbers,
-            conf_mail,
-            conf_banner,
-            conf_site,
-            conf_main_sig
-        ]
-
-        for i in values:
-            ... # print(i)
 
         signature_html = create_email_signature(
             first_name=first_name,
@@ -565,6 +540,14 @@ def main():
             save_signature_to_file(signature_html, signature_name, global_id, user_global_id)
             if conf_main_sig == 1:
                 set_outlook_signature(sid, signature_name, global_id)
+            updated_signatures.append(f'{user_global_id}-{signature_name}')
+
+    return updated_signatures
+
+
+def main():
+    main_with_return()
+
 
 if __name__ == "__main__":
     # Запускаем GUI приложение
