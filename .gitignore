@@ -1,6 +1,7 @@
 *.png
 *.jpg
 *.ico
+*.exe
 config.ini
 
 # Byte-compiled / optimized / DLL files
