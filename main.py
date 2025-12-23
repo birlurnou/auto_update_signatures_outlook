@@ -4,6 +4,12 @@ import win32security
 import winreg
 import pyodbc
 import configparser
+import sys
+import threading
+from PyQt5.QtWidgets import (QApplication, QSystemTrayIcon, QMenu, QAction)
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QTimer
 
 def create_email_signature(first_name, last_name, job, email, greet,
                             work_number, personal_number, social_number, cut_number,
@@ -377,7 +383,77 @@ class DatabaseManager:
         query = 'SELECT * FROM signatures WHERE global_id = ?'
         return self.execute_query(query, [user_id], fetch_all=True)
 
-if __name__ == '__main__':
+
+class TrayApp(QObject):
+    update_signal = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+        self.app = QApplication(sys.argv)
+        self.app.setQuitOnLastWindowClosed(False)
+
+        # Таймер автообновления
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.auto_update)
+
+        # Создаем иконку в трее
+        self.tray_icon = QSystemTrayIcon()
+
+        # Здесь нужна иконка - создай icon.ico или укажи путь к своей
+        try:
+            self.tray_icon.setIcon(QIcon("icon.ico"))
+        except:
+            # Если иконки нет, создадим пустую
+            self.tray_icon.setIcon(QIcon())
+
+        self.tray_icon.setToolTip("Outlook Signature Updater")
+
+        # Создаем меню
+        self.menu = QMenu()
+
+        # Пункт "Обновить"
+        update_action = QAction("Обновить", self.menu)
+        update_action.triggered.connect(self.update_signatures)
+        self.menu.addAction(update_action)
+
+        # Пункт "Выйти"
+        exit_action = QAction("Выйти", self.menu)
+        exit_action.triggered.connect(self.exit_app)
+        self.menu.addAction(exit_action)
+
+        self.tray_icon.setContextMenu(self.menu)
+        self.tray_icon.show()
+
+        # Соединяем сигнал с основной функцией
+        self.update_signal.connect(self.run_main)
+
+    def auto_update(self):
+        self.update_signatures()
+
+    def update_signatures(self):
+        # Запускаем в отдельном потоке, чтобы не блокировать GUI
+        thread = threading.Thread(target=self.update_signal.emit)
+        thread.daemon = True
+        thread.start()
+
+    def run_main(self):
+        # Запускаем оригинальную функцию main
+        main()
+
+    def exit_app(self):
+        if self.timer.isActive():
+            self.timer.stop()
+        self.tray_icon.hide()
+        self.app.quit()
+        sys.exit(0)
+
+    def run(self):
+        # Запускаем приложение сразу при старте
+        self.update_signatures()
+        self.timer.start(30 * 60 * 1000)  # 30 минут
+        sys.exit(self.app.exec_())
+
+def main():
 
     user_global_id = os.getlogin() # os.environ['USERNAME']
 
@@ -489,3 +565,8 @@ if __name__ == '__main__':
             save_signature_to_file(signature_html, signature_name, global_id, user_global_id)
             if conf_main_sig == 1:
                 set_outlook_signature(sid, signature_name, global_id)
+
+if __name__ == "__main__":
+    # Запускаем GUI приложение
+    tray_app = TrayApp()
+    tray_app.run()
