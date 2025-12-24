@@ -64,6 +64,48 @@ class DatabaseManager:
             cursor.close()
             conn.close()
 
+    def execute_insert(self, query, params=None):
+        """Выполняет INSERT запрос"""
+        conn = self.get_connection()
+        if not conn:
+            return False
+        cursor = conn.cursor()
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            conn.commit()
+            return True
+        except pyodbc.Error as e:
+            print(f'Insert error: {e}')
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+
+    def execute_delete(self, query, params=None):
+        """Выполняет DELETE запрос"""
+        conn = self.get_connection()
+        if not conn:
+            return False
+        cursor = conn.cursor()
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            conn.commit()
+            return True
+        except pyodbc.Error as e:
+            print(f'Delete error: {e}')
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+
     def get_all_users(self):
         query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures'
         return self.execute_query(query, fetch_all=True)
@@ -81,9 +123,42 @@ class DatabaseManager:
     def get_user_by_id(self, signature_id):
         query = 'SELECT * FROM signatures WHERE signature_id = ?'
         result = self.execute_query(query, [signature_id], fetch_all=True)
-        if result:
-            print(f"DEBUG: Found user, row length: {len(result[0])}")
         return result
+
+    def insert_user(self, data):
+        """Вставляет новую запись в таблицу signatures"""
+        query = '''
+        INSERT INTO signatures (
+            global_id, signature_name, first_name, last_name, job, email, greet,
+            work_number, personal_number, social_number, cut_number,
+            cb_hotel, cb_language, cb_type,
+            banner_path, banner_url, site_url,
+            conf_greet, conf_fname, conf_job, conf_hotel, conf_phone_numbers,
+            conf_mail, conf_banner, conf_site, conf_main_sig
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        '''
+        return self.execute_insert(query, data)
+
+    def update_user(self, signature_id, data):
+        """Обновляет существующую запись в таблице signatures"""
+        query = '''
+        UPDATE signatures SET
+            global_id = ?, signature_name = ?, first_name = ?, last_name = ?, job = ?, email = ?, greet = ?,
+            work_number = ?, personal_number = ?, social_number = ?, cut_number = ?,
+            cb_hotel = ?, cb_language = ?, cb_type = ?,
+            banner_path = ?, banner_url = ?, site_url = ?,
+            conf_greet = ?, conf_fname = ?, conf_job = ?, conf_hotel = ?, conf_phone_numbers = ?,
+            conf_mail = ?, conf_banner = ?, conf_site = ?, conf_main_sig = ?
+        WHERE signature_id = ?
+        '''
+        # Добавляем signature_id в конец списка параметров
+        params = data + [signature_id]
+        return self.execute_update(query, params)
+
+    def delete_user(self, signature_id):
+        """Удаляет запись из таблицы signatures"""
+        query = 'DELETE FROM signatures WHERE signature_id = ?'
+        return self.execute_delete(query, [signature_id])
 
     def update_global_settings(self, banner_path_rg, banner_url_rg, site_url_rg,
                                banner_path_ze, banner_url_ze, site_url_ze):
@@ -306,9 +381,9 @@ class MainWindow(QMainWindow):
         right_layout.setSpacing(10)
 
         self.create_btn = QPushButton("Create")
-        self.copy_btn = QPushButton("Copy")  # Новая кнопка
+        self.copy_btn = QPushButton("Copy")
         self.edit_btn = QPushButton("Edit")
-        self.more_settings_btn = QPushButton("Global settings")  # Новая кнопка
+        self.more_settings_btn = QPushButton("Global settings")
         self.delete_btn = QPushButton("Delete")
 
         buttons = [self.create_btn, self.copy_btn, self.edit_btn, self.more_settings_btn, self.delete_btn]
@@ -321,9 +396,9 @@ class MainWindow(QMainWindow):
 
         # Подключаем кнопки
         self.create_btn.clicked.connect(self.on_create)
-        self.copy_btn.clicked.connect(self.on_copy)  # Новая функция
+        self.copy_btn.clicked.connect(self.on_copy)
         self.edit_btn.clicked.connect(self.on_edit)
-        self.more_settings_btn.clicked.connect(self.on_more_settings)  # Новая функция
+        self.more_settings_btn.clicked.connect(self.on_more_settings)
         self.delete_btn.clicked.connect(self.on_delete)
 
         layout.addWidget(left_widget, 3)
@@ -368,7 +443,7 @@ class MainWindow(QMainWindow):
         self.load_data(data)
 
     def on_create(self):
-        dialog = SimpleEditDialog(None, self.db, self)
+        dialog = SimpleEditDialog(None, self.db, self, mode='create')
         if dialog.exec_():
             self.on_search()
 
@@ -376,7 +451,7 @@ class MainWindow(QMainWindow):
         row = self.table.currentRow()
         if row >= 0:
             signature_id = self.table.item(row, 0).text()
-            dialog = SimpleEditDialog(signature_id, self.db, self)
+            dialog = SimpleEditDialog(signature_id, self.db, self, mode='edit')
             if dialog.exec_():
                 self.on_search()
         else:
@@ -386,8 +461,9 @@ class MainWindow(QMainWindow):
         row = self.table.currentRow()
         if row >= 0:
             signature_id = self.table.item(row, 0).text()
-            # Реализуй логику копирования
-            QMessageBox.information(self, "Copy", "Copy functionality - to be implemented")
+            dialog = SimpleEditDialog(signature_id, self.db, self, mode='copy')
+            if dialog.exec_():
+                self.on_search()
         else:
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
@@ -398,33 +474,47 @@ class MainWindow(QMainWindow):
     def on_delete(self):
         row = self.table.currentRow()
         if row >= 0:
+            signature_id = self.table.item(row, 0).text()
             reply = QMessageBox.question(self, "Confirm", "Delete this signature?",
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                global_id = self.table.item(row, 0).text()
-                print(f"Deleting signature {global_id}")
+                success = self.db.delete_user(signature_id)
+                if success:
+                    QMessageBox.information(self, "Success", "Signature deleted successfully!")
+                    self.on_search()
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to delete signature!")
         else:
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
     def on_double_click(self, index):
         row = index.row()
         signature_id = self.table.item(row, 0).text()
-        dialog = SimpleEditDialog(signature_id, self.db, self)
+        dialog = SimpleEditDialog(signature_id, self.db, self, mode='edit')
         if dialog.exec_():
             self.on_search()
 
 
 class SimpleEditDialog(QDialog):
-    def __init__(self, signature_id=None, db=None, parent=None):
+    def __init__(self, signature_id=None, db=None, parent=None, mode='edit'):
         super().__init__(parent)
         self.signature_id = signature_id
         self.db = db
+        self.mode = mode  # 'create', 'edit', or 'copy'
         self.initUI()
-        if signature_id:
+        if signature_id and mode in ['edit', 'copy']:
             self.load_user_data()
+            if mode == 'copy':
+                self.clear_global_id()  # Очищаем global_id для копирования
 
     def initUI(self):
-        title = "Edit Signature" if self.signature_id else "Create Signature"
+        if self.mode == 'create':
+            title = "Create Signature"
+        elif self.mode == 'copy':
+            title = "Copy Signature"
+        else:
+            title = "Edit Signature"
+
         self.setWindowTitle(title)
         self.setMinimumWidth(1000)
         self.setMinimumHeight(600)
@@ -579,7 +669,7 @@ class SimpleEditDialog(QDialog):
         save_btn = QPushButton("Save")
         cancel_btn = QPushButton("Cancel")
 
-        save_btn.clicked.connect(self.accept)
+        save_btn.clicked.connect(self.on_save)
         cancel_btn.clicked.connect(self.reject)
 
         button_layout.addStretch()
@@ -588,6 +678,11 @@ class SimpleEditDialog(QDialog):
 
         main_layout.addLayout(button_layout)
         self.setLayout(main_layout)
+
+    def clear_global_id(self):
+        """Очищает поле Global ID для режима копирования"""
+        if 'global_id' in self.inputs:
+            self.inputs['global_id'].clear()
 
     def load_user_data(self):
         if not self.signature_id or not self.db:
@@ -646,6 +741,55 @@ class SimpleEditDialog(QDialog):
                 idx = checkbox_indices[field]
                 if idx < len(row) and row[idx] is not None:
                     checkbox.setChecked(row[idx] == 1)
+
+    def on_save(self):
+        """Обработчик нажатия кнопки Save"""
+        # Собираем данные из полей
+        data = []
+
+        # Основные поля
+        basic_fields = ['global_id', 'signature_name', 'first_name', 'last_name',
+                        'job', 'email', 'greet']
+        for field in basic_fields:
+            data.append(self.inputs[field].text().strip())
+
+        # Контактные поля
+        contact_fields = ['work_number', 'personal_number', 'social_number', 'cut_number']
+        for field in contact_fields:
+            data.append(self.inputs[field].text().strip())
+
+        # Комбобоксы
+        data.append(self.cb_hotel.currentIndex())
+        data.append(self.cb_language.currentIndex())
+        data.append(self.cb_type.currentIndex())
+
+        # URL поля
+        url_fields = ['banner_path', 'banner_url', 'site_url']
+        for field in url_fields:
+            data.append(self.inputs[field].text().strip())
+
+        # Чекбоксы
+        checkbox_fields = ['conf_greet', 'conf_fname', 'conf_job', 'conf_hotel',
+                           'conf_phone_numbers', 'conf_mail', 'conf_banner',
+                           'conf_site', 'conf_main_sig']
+        for field in checkbox_fields:
+            data.append(1 if self.checkboxes[field].isChecked() else 0)
+
+        # Выполняем соответствующую операцию
+        if self.mode == 'create' or self.mode == 'copy':
+            success = self.db.insert_user(data)
+            if success:
+                QMessageBox.information(self, "Success", "Signature created successfully!")
+                self.accept()
+            else:
+                QMessageBox.warning(self, "Error", "Failed to create signature!")
+        else:  # mode == 'edit'
+            success = self.db.update_user(self.signature_id, data)
+            if success:
+                QMessageBox.information(self, "Success", "Signature updated successfully!")
+                self.accept()
+            else:
+                QMessageBox.warning(self, "Error", "Failed to update signature!")
 
 
 if __name__ == '__main__':
