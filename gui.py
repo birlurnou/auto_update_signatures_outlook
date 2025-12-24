@@ -1175,8 +1175,8 @@ class SimpleEditDialog(QDialog):
                 # Открываем в браузере по умолчанию
                 webbrowser.open(f"file://{os.path.abspath(temp_file)}")
 
-                QMessageBox.information(self, "Preview",
-                                        "Signature opened in browser. Temporary file saved in temp_sig folder.")
+                # QMessageBox.information(self, "Preview",
+                #                         "Signature opened in browser. Temporary file saved in temp_sig folder.")
         else:
             QMessageBox.warning(self, "Error", "Failed to generate signature preview")
 
