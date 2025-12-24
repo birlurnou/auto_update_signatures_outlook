@@ -314,7 +314,7 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     with open(full_path, 'w', encoding='windows-1251') as f:
         f.write(html_content)
     # print(full_path)
-    # webbrowser.open(os.path.abspath(full_path))
+    webbrowser.open(os.path.abspath(full_path))
 
 def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
@@ -500,7 +500,7 @@ def main_with_return():
     sid = win32security.ConvertSidToStringSid(user_info[0])
 
     for user in users:
-        (global_id, signature_name, first_name, last_name, job, email, greet,
+        (signature_id, global_id, signature_name, first_name, last_name, job, email, greet,
          work_number, personal_number, social_number, cut_number,
          cb_hotel, cb_language, cb_type,
          banner_path, banner_url, site_url,
