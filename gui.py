@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -1180,6 +1181,12 @@ class SimpleEditDialog(QDialog):
             QMessageBox.warning(self, "Error", "Failed to generate signature preview")
 
 if __name__ == '__main__':
+    user_global_id = os.getlogin()
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    list_users = config['admins']['admin']
+    if user_global_id not in list_users:
+        exit()
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
