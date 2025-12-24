@@ -404,7 +404,8 @@ class DatabaseManager:
 
     def search_users(self, search_term):
         query = '''
-        SELECT signature_id, global_id, signature_name, first_name, last_name, email 
+        SELECT signature_id, global_id, signature_name, first_name, last_name, email, 
+               cb_hotel, cb_type, conf_main_sig, conf_greet, conf_banner, conf_site 
         FROM signatures 
         WHERE global_id LIKE ? OR signature_name LIKE ? OR first_name LIKE ? 
         OR last_name LIKE ? OR email LIKE ?
