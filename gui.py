@@ -399,7 +399,7 @@ class DatabaseManager:
             conn.close()
 
     def get_all_users(self):
-        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures ORDER BY signature_id ASC'
+        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email, cb_hotel, cb_type, conf_main_sig FROM signatures ORDER BY signature_id ASC'
         return self.execute_query(query, fetch_all=True)
 
     def search_users(self, search_term):
@@ -620,6 +620,7 @@ class MainWindow(QMainWindow):
         self.load_data()
         # Изначально деактивируем кнопки, требующие выбора
         self.update_button_states()
+        self.showMaximized()
 
     def initUI(self):
         self.setWindowTitle('Signature Manager')
@@ -652,8 +653,8 @@ class MainWindow(QMainWindow):
 
         # Таблица
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email'])
+        self.table.setColumnCount(9)
+        self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email', 'Hotel', 'Type', 'Main'])
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setAlternatingRowColors(True)
@@ -711,7 +712,32 @@ class MainWindow(QMainWindow):
             self.table.setRowCount(len(data))
             for row_idx, row in enumerate(data):
                 for col_idx, value in enumerate(row):
-                    item = QTableWidgetItem(str(value) if value else "")
+                    item_text = str(value) if value else ""
+
+                    if col_idx == 6:
+                        hotel_map = {1: "Regency", 2: "Place", 3: "Both"}
+                        item_text = hotel_map.get(value, "")
+                    elif col_idx == 7:
+                        type_map = {1: "Full", 2: "Cut"}
+                        item_text = type_map.get(value, "")
+                    elif col_idx == 8:
+                        main_map = {1: 'OK', 2: ''}
+                        item_text = main_map.get(value, "")
+
+                    item = QTableWidgetItem(item_text)
+
+                    if col_idx == 6:  # Столбец Hotel
+                        hotel_value = value
+                        if hotel_value == 1:  # Regency
+                            item.setBackground(QColor("#441D61"))  # Фиолетовый для Regency
+                            item.setForeground(QColor("#FFFFFF"))  # Белый текст для контраста
+                        elif hotel_value == 2:  # Place
+                            item.setBackground(QColor("#ED7D31"))  # Оранжевый для Place
+                            item.setForeground(QColor("#FFFFFF"))  # Белый текст для контраста
+                        elif hotel_value == 3:  # Both
+                            item.setBackground(QColor("#7B2CBF"))  # Средний фиолетовый
+                            item.setForeground(QColor("#FFFFFF"))  # Белый текст
+
                     self.table.setItem(row_idx, col_idx, item)
 
         self.table.resizeColumnsToContents()
@@ -807,6 +833,10 @@ class SimpleEditDialog(QDialog):
                 ...
                 # self.clear_global_id()  # Очищаем global_id для копирования
                 # self.clear_signature_name() # Очищаем signature_name для копирования
+        font = self.font()
+        font.setPointSize(9)  # Увеличить размер
+        self.setFont(font)
+
     def initUI(self):
         if self.mode == 'create':
             title = "Create Signature"
@@ -817,7 +847,7 @@ class SimpleEditDialog(QDialog):
 
         self.setWindowTitle(title)
         self.setMinimumWidth(1000)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(620)
 
         # Основной layout
         main_layout = QVBoxLayout()
