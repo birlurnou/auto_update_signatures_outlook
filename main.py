@@ -471,7 +471,7 @@ class TrayApp(QObject):
     def run(self):
         # Запускаем приложение сразу при старте
         self.update_signatures()
-        self.timer.start(30 * 60 * 1000)  # 30 минут
+        self.timer.start(60 * 60 * 1000)  # 60 минут
         sys.exit(self.app.exec_())
 
 
