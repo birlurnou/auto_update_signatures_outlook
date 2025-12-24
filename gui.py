@@ -399,7 +399,7 @@ class DatabaseManager:
             conn.close()
 
     def get_all_users(self):
-        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email, cb_hotel, cb_type, conf_main_sig FROM signatures ORDER BY signature_id ASC'
+        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email, cb_hotel, cb_type, conf_main_sig, conf_greet, conf_banner, conf_site FROM signatures ORDER BY signature_id ASC'
         return self.execute_query(query, fetch_all=True)
 
     def search_users(self, search_term):
@@ -653,8 +653,9 @@ class MainWindow(QMainWindow):
 
         # Таблица
         self.table = QTableWidget()
-        self.table.setColumnCount(9)
-        self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email', 'Hotel', 'Type', 'Main'])
+        self.table.setColumnCount(12)
+        self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email', 'Hotel'
+                                                 , 'Type', 'Main', 'Greeting', 'Banner', 'Site'])
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setAlternatingRowColors(True)
@@ -723,6 +724,15 @@ class MainWindow(QMainWindow):
                     elif col_idx == 8:
                         main_map = {1: 'OK', 2: ''}
                         item_text = main_map.get(value, "")
+                    elif col_idx == 9:
+                        greet_map = {1: 'OK', 2: ''}
+                        item_text = greet_map.get(value, "")
+                    elif col_idx == 10:
+                        banner_map = {1: 'OK', 2: ''}
+                        item_text = banner_map.get(value, "")
+                    elif col_idx == 11:
+                        site_map = {1: 'OK', 2: ''}
+                        item_text = site_map.get(value, "")
 
                     item = QTableWidgetItem(item_text)
 
