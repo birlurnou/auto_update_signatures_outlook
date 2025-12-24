@@ -2,6 +2,7 @@
 *.jpg
 *.ico
 *.exe
+temp_sig/
 config.ini
 
 # Byte-compiled / optimized / DLL files
