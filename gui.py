@@ -71,6 +71,8 @@ class MainWindow(QMainWindow):
         self.db = DatabaseManager()
         self.initUI()
         self.load_data()
+        # Изначально деактивируем кнопки, требующие выбора
+        self.update_button_states()
 
     def initUI(self):
         self.setWindowTitle('Signature Management')
@@ -110,6 +112,8 @@ class MainWindow(QMainWindow):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.doubleClicked.connect(self.on_double_click)
+        # Подключаем сигнал изменения выделения
+        self.table.itemSelectionChanged.connect(self.on_selection_changed)
 
         # Стиль таблицы
         palette = self.table.palette()
@@ -168,6 +172,25 @@ class MainWindow(QMainWindow):
                     self.table.setItem(row_idx, col_idx, item)
 
         self.table.resizeColumnsToContents()
+        # Обновляем состояние кнопок после загрузки данных
+        self.update_button_states()
+
+    def update_button_states(self):
+        """Обновляет состояние кнопок в зависимости от выбора в таблице"""
+        has_selection = self.table.currentRow() >= 0
+
+        # Кнопки, которые требуют выбора элемента
+        self.copy_btn.setEnabled(has_selection)
+        self.edit_btn.setEnabled(has_selection)
+        self.delete_btn.setEnabled(has_selection)
+
+        # Кнопка Create всегда активна
+        self.create_btn.setEnabled(True)
+        self.more_settings_btn.setEnabled(True)
+
+    def on_selection_changed(self):
+        """Обработчик изменения выделения в таблице"""
+        self.update_button_states()
 
     def on_search(self):
         term = self.search_input.text().strip()
@@ -183,7 +206,7 @@ class MainWindow(QMainWindow):
         row = self.table.currentRow()
         if row >= 0:
             signature_id = self.table.item(row, 0).text()
-            dialog = SimpleEditDialog(signature_id, self.db, self)  # Исправь
+            dialog = SimpleEditDialog(signature_id, self.db, self)
             if dialog.exec_():
                 self.on_search()
         else:
@@ -199,13 +222,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
     def on_more_settings(self):
-        row = self.table.currentRow()
-        if row >= 0:
-            signature_id = self.table.item(row, 0).text()
-            # Реализуй логику дополнительных настроек
-            QMessageBox.information(self, "More Settings", "More settings functionality - to be implemented")
-        else:
-            QMessageBox.warning(self, "Warning", "Select a signature first")
+        QMessageBox.information(self, "More Settings", "More settings functionality - to be implemented")
 
     def on_delete(self):
         row = self.table.currentRow()
@@ -221,25 +238,25 @@ class MainWindow(QMainWindow):
     def on_double_click(self, index):
         row = index.row()
         signature_id = self.table.item(row, 0).text()
-        dialog = SimpleEditDialog(signature_id, self.db, self)  # Исправь
+        dialog = SimpleEditDialog(signature_id, self.db, self)
         if dialog.exec_():
             self.on_search()
 
 
 class SimpleEditDialog(QDialog):
-    def __init__(self, signature_id=None, db=None, parent=None):  # Изменил на signature_id
+    def __init__(self, signature_id=None, db=None, parent=None):
         super().__init__(parent)
-        self.signature_id = signature_id  # Изменил на signature_id
+        self.signature_id = signature_id
         self.db = db
         self.initUI()
-        if signature_id:  # Изменил на signature_id
+        if signature_id:
             self.load_user_data()
 
     def initUI(self):
-        title = "Edit Signature" if self.signature_id else "Create Signature"  # Изменил
+        title = "Edit Signature" if self.signature_id else "Create Signature"
         self.setWindowTitle(title)
-        self.setMinimumWidth(1000)  # Ещё шире
-        self.setMinimumHeight(600)  # Добавим высоту
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(600)
 
         # Основной layout
         main_layout = QVBoxLayout()
@@ -402,10 +419,10 @@ class SimpleEditDialog(QDialog):
         self.setLayout(main_layout)
 
     def load_user_data(self):
-        if not self.signature_id or not self.db:  # Изменил на signature_id
+        if not self.signature_id or not self.db:
             return
 
-        data = self.db.get_user_by_id(self.signature_id)  # Изменил
+        data = self.db.get_user_by_id(self.signature_id)
         if not data or len(data) == 0:
             return
 
@@ -457,7 +474,6 @@ class SimpleEditDialog(QDialog):
             if field in checkbox_indices:
                 idx = checkbox_indices[field]
                 if idx < len(row) and row[idx] is not None:
-                    # checkbox.setChecked(bool(row[idx]))
                     checkbox.setChecked(row[idx] == 1)
 
 
