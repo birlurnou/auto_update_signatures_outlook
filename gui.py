@@ -803,8 +803,9 @@ class SimpleEditDialog(QDialog):
         if signature_id and mode in ['edit', 'copy']:
             self.load_user_data()
             if mode == 'copy':
-                self.clear_global_id()  # Очищаем global_id для копирования
-                self.clear_signature_name() # Очищаем signature_name для копирования
+                ...
+                # self.clear_global_id()  # Очищаем global_id для копирования
+                # self.clear_signature_name() # Очищаем signature_name для копирования
     def initUI(self):
         if self.mode == 'create':
             title = "Create Signature"
