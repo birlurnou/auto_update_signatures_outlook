@@ -1,11 +1,13 @@
-import customtkinter as ctk
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+import configparser
+import pyodbc
+
 
 class DatabaseManager:
     def __init__(self):
-        # read ini file
         config = configparser.ConfigParser()
         config.read('config.ini')
         self.SQL_SERVER = config['database']['SQL_SERVER']
@@ -21,348 +23,341 @@ class DatabaseManager:
             print(f'Connection error: {e}')
             return None
 
-    def execute_query(self, query, params=None, fetch_one=False, fetch_all=False, commit=False):
-        conn = None
-        cursor = None
+    def execute_query(self, query, params=None, fetch_all=False):
+        conn = self.get_connection()
+        if not conn:
+            return []
+        cursor = conn.cursor()
         try:
-            conn = self.get_connection()
-            if not conn:
-                return None
-            cursor = conn.cursor()
             if params:
                 cursor.execute(query, params)
             else:
                 cursor.execute(query)
-            if commit:
-                conn.commit()
-                return True
-            if fetch_one:
-                return cursor.fetchone()
-            elif fetch_all:
+            if fetch_all:
                 return cursor.fetchall()
-            return None
+            return []
         except pyodbc.Error as e:
-            return None
+            print(f'Query error: {e}')
+            return []
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            cursor.close()
+            conn.close()
 
-    def get_user_data(self, user_id):
-        query = 'SELECT * FROM users WHERE user_id = ?'
-        return self.execute_query(query, [user_id], fetch_one=True)
+    def get_all_users(self):
+        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures'
+        return self.execute_query(query, fetch_all=True)
 
-    def insert_signature(self, user_data):
+    def search_users(self, search_term):
         query = '''
-        INSERT INTO ... (..., ..., ...)
-        VALUES (?, ?, ?)
+        SELECT signature_id, global_id, signature_name, first_name, last_name, email 
+        FROM signatures 
+        WHERE global_id LIKE ? OR signature_name LIKE ? OR first_name LIKE ? 
+        OR last_name LIKE ? OR email LIKE ?
         '''
-        return self.execute_query(query, user_data, commit=True)
+        pattern = f'%{search_term}%'
+        return self.execute_query(query, [pattern] * 5, fetch_all=True)
 
-    def update_signature(self, user_data):
-        query = '''
-        UPDATE ...
-        SET ...=?, ...=?
-        WHERE ...=?
-        '''
-        return self.execute_query(query, user_data, commit=True)
+    def get_user_by_id(self, signature_id):
+        query = 'SELECT * FROM signatures WHERE signature_id = ?'
+        result = self.execute_query(query, [signature_id], fetch_all=True)
+        if result:
+            print(f"DEBUG: Found user, row length: {len(result[0])}")
+        return result
 
-    def delete_signature(self, user_data):
-        query = f'DELETE FROM ... WHERE ...=?'
-        return self.execute_query(query, user_data, commit=True)
 
-class SignatureApp(ctk.CTk):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.title("Signature`s manager")
-        window_width = 1000
-        window_height = 745
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        self.db = DatabaseManager()
+        self.initUI()
+        self.load_data()
 
-        # Темная тема и синий цвет по умолчанию
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+    def initUI(self):
+        self.setWindowTitle('Signature Management')
+        self.setGeometry(100, 100, 1000, 600)
 
-        # Флаг текущей темы
-        self.is_dark_theme = True
+        central = QWidget()
+        self.setCentralWidget(central)
+        layout = QHBoxLayout(central)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(15)
 
-        # Хранилище подписей
-        self.signatures = {}
-        self.current_signature = None
+        # Левая часть
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.setSpacing(10)
 
-        # Создаём главную вкладку напрямую
-        self.create_main_tab()
+        # Поиск
+        search_layout = QHBoxLayout()
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search...")
+        self.search_input.setMinimumHeight(30)
+        self.search_input.returnPressed.connect(self.on_search)
 
-    def update_treeview_style(self):
-        """Обновляет стили Treeview в зависимости от темы"""
-        style = ttk.Style()
-        
-        if self.is_dark_theme:
-            # Темная тема
-            style.configure("Treeview",
-                            background="#2a2d2e",
-                            foreground="white",
-                            fieldbackground="#2a2d2e",
-                            borderwidth=1,
-                            relief="solid",
-                            font=('Arial', 11))
-            style.configure("Treeview.Heading",
-                            background="#3b3b3b",
-                            foreground="white",
-                            relief="raised",
-                            font=('Arial', 12, 'bold'))
-            style.map('Treeview', background=[('selected', '#1f6aa5')])
-            style.map("Treeview.Heading",
-                      background=[('active', '#3b3b3b')],
-                      foreground=[('active', '#AAAAAA')])
+        search_btn = QPushButton("Search")
+        search_btn.setFixedWidth(80)
+        search_btn.clicked.connect(self.on_search)
+
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(search_btn)
+
+        # Таблица
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email'])
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setAlternatingRowColors(True)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SingleSelection)
+        self.table.doubleClicked.connect(self.on_double_click)
+
+        # Стиль таблицы
+        palette = self.table.palette()
+        palette.setColor(palette.Highlight, QColor(0, 120, 215))
+        palette.setColor(palette.HighlightedText, Qt.white)
+        self.table.setPalette(palette)
+
+        left_layout.addLayout(search_layout)
+        left_layout.addWidget(self.table)
+
+        # Правая часть с кнопками
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        right_layout.setAlignment(Qt.AlignTop)
+        right_layout.setSpacing(10)
+
+        self.create_btn = QPushButton("Create")
+        self.edit_btn = QPushButton("Edit")
+        self.delete_btn = QPushButton("Delete")
+
+        buttons = [self.create_btn, self.edit_btn, self.delete_btn]
+        for btn in buttons:
+            btn.setMinimumHeight(35)
+            btn.setMinimumWidth(150)
+            right_layout.addWidget(btn)
+
+        right_layout.addStretch()
+
+        # Подключаем кнопки
+        self.create_btn.clicked.connect(self.on_create)
+        self.edit_btn.clicked.connect(self.on_edit)
+        self.delete_btn.clicked.connect(self.on_delete)
+
+        layout.addWidget(left_widget, 3)
+        layout.addWidget(right_widget, 1)
+
+    def load_data(self, data=None):
+        if data is None:
+            data = self.db.get_all_users()
+
+        self.table.setRowCount(0)
+        if data:
+            self.table.setRowCount(len(data))
+            for row_idx, row in enumerate(data):
+                for col_idx, value in enumerate(row):
+                    item = QTableWidgetItem(str(value) if value else "")
+                    self.table.setItem(row_idx, col_idx, item)
+
+        self.table.resizeColumnsToContents()
+
+    def on_search(self):
+        term = self.search_input.text().strip()
+        data = self.db.search_users(term) if term else self.db.get_all_users()
+        self.load_data(data)
+
+    def on_create(self):
+        dialog = SimpleEditDialog(None, self.db, self)
+        if dialog.exec_():
+            self.on_search()
+
+    def on_edit(self):
+        row = self.table.currentRow()
+        if row >= 0:
+            signature_id = self.table.item(row, 0).text()
+            dialog = SimpleEditDialog(global_id, self.db, self)
+            if dialog.exec_():
+                self.on_search()
         else:
-            # Светлая тема
-            style.configure("Treeview",
-                            background="white",
-                            foreground="black",
-                            fieldbackground="white",
-                            borderwidth=1,
-                            relief="solid",
-                            font=('Arial', 11))
-            style.configure("Treeview.Heading",
-                            background="#e0e0e0",
-                            foreground="black",
-                            relief="raised",
-                            font=('Arial', 12, 'bold'))
-            style.map('Treeview', background=[('selected', '#3b8ed0')])
-            style.map("Treeview.Heading",
-                      background=[('active', '#d0d0d0')],
-                      foreground=[('active', '#666666')])
+            QMessageBox.warning(self, "Warning", "Select a signature first")
 
-    def create_main_tab(self):
-        """Создаёт основную вкладку с таблицей подписей и кнопками действий"""
-        main_frame = ctk.CTkFrame(self)
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
-        # Делим вкладку на левую и правую части
-        left_frame = ctk.CTkFrame(main_frame)
-        left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
-        right_frame = ctk.CTkFrame(main_frame, width=150)
-        right_frame.pack(side="right", fill="y", padx=5, pady=5)
-
-        # Панель поиска (вместо заголовка)
-        search_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
-        search_frame.pack(fill="x", pady=5, padx=5)
-
-        # Поле для ввода поиска
-        self.search_entry = ctk.CTkEntry(
-            search_frame,
-            placeholder_text="Введите текст для поиска...",
-            width=300,
-            height=35,
-            corner_radius=6,
-            font=("Arial", 12)
-        )
-        self.search_entry.pack(side="left", padx=(0, 10))
-
-        # Кнопка "Найти"
-        self.search_button = ctk.CTkButton(
-            search_frame,
-            text="Найти",
-            command=self.on_search_click,
-            width=80,
-            height=35,
-            corner_radius=6,
-            fg_color="#3b8ed0",
-            hover_color="#1f6aa5",
-            font=("Arial", 12, "bold")
-        )
-        self.search_button.pack(side="left")
-
-        # Создаем таблицу (Treeview)
-        table_frame = ctk.CTkFrame(left_frame)
-        table_frame.pack(fill="both", expand=True, padx=5, pady=5)
-
-        # Создаем Treeview с кастомными стилями
-        style = ttk.Style()
-        style.theme_use("default")
-        
-        # Инициализируем стили для темной темы
-        self.update_treeview_style()
-
-        # Создаем Treeview
-        self.tree = ttk.Treeview(table_frame, columns=("global_id", "first_name", "last_name", "department"),
-                                 show="headings", height=15, style="Treeview")
-
-        # Настраиваем колонки
-        self.tree.heading("global_id", text="Global ID")
-        self.tree.heading("first_name", text="First Name")
-        self.tree.heading("last_name", text="Last Name")
-        self.tree.heading("department", text="Department")
-
-        self.tree.column("global_id", width=150, anchor="center", stretch=False)
-        self.tree.column("first_name", width=150, anchor="w", stretch=False)
-        self.tree.column("last_name", width=150, anchor="w", stretch=False)
-        self.tree.column("department", width=550, anchor="w", stretch=False)
-
-        # Делаем заголовки не кликабельными
-        for column in ("global_id", "first_name", "last_name", "department"):
-            self.tree.heading(column, command=lambda: None)  # Пустая функция
-
-        # Добавляем скроллбар для таблицы
-        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-
-        # Упаковываем таблицу и скроллбар
-        self.tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        # Добавляем примеры данных в таблицу
-        self.add_sample_data()
-
-        # Обработчик выбора строки в таблице
-        self.tree.bind("<<TreeviewSelect>>", self.on_table_select)
-
-        # Кнопки действий
-        ctk.CTkLabel(right_frame, text="Действия", font=("Arial", 14, "bold")).pack(pady=10)
-
-        self.btn_create = ctk.CTkButton(
-            right_frame, text="Создать", command=self.create_signature, height=40, width=140,
-            fg_color="#3b8ed0", hover_color="#1f6aa5", text_color="white",
-            font=("Arial", 14)
-        )
-        self.btn_create.pack(pady=5)
-
-        self.btn_delete = ctk.CTkButton(
-            right_frame, text="Удалить", command=self.delete_signature, height=40, width=140,
-            fg_color="#a0a0a0",  # Серый цвет по умолчанию (неактивное состояние)
-            hover_color="#a0a0a0",  # Тот же цвет при наведении в неактивном состоянии
-            text_color="white",
-            text_color_disabled="white",
-            state="disabled",
-            font=("Arial", 14)
-        )
-        self.btn_delete.pack(pady=5)
-
-        # Кнопка переключения темы
-        self.theme_button = ctk.CTkButton(
-            right_frame, 
-            text="Светлая тема", 
-            command=self.toggle_theme, 
-            height=40, 
-            width=140,
-            fg_color="#FFFFFF",  # Белый цвет
-            hover_color="#E0E0E0",  # Светло-серый при наведении
-            text_color="#000000",  # Черный текст
-            font=("Arial", 14)
-        )
-        self.theme_button.pack(pady=5)
-
-    def toggle_theme(self):
-        """Переключает между светлой и темной темой"""
-        if self.is_dark_theme:
-            # Переключаем на светлую тему
-            ctk.set_appearance_mode("light")
-            self.theme_button.configure(
-                text="Темная тема",
-                fg_color="#000000",  # Черный цвет
-                hover_color="#333333",  # Темно-серый при наведении
-                text_color="#FFFFFF"  # Белый текст
-            )
-            self.is_dark_theme = False
+    def on_delete(self):
+        row = self.table.currentRow()
+        if row >= 0:
+            reply = QMessageBox.question(self, "Confirm", "Delete this signature?",
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                global_id = self.table.item(row, 0).text()
+                print(f"Deleting signature {global_id}")
         else:
-            # Переключаем на темную тему
-            ctk.set_appearance_mode("dark")
-            self.theme_button.configure(
-                text="Светлая тема",
-                fg_color="#FFFFFF",  # Белый цвет
-                hover_color="#E0E0E0",  # Светло-серый при наведении
-                text_color="#000000"  # Черный текст
-            )
-            self.is_dark_theme = True
-        
-        # Обновляем стили Treeview
-        self.update_treeview_style()
-        
-        # Принудительно обновляем отображение таблицы
-        self.tree.update()
+            QMessageBox.warning(self, "Warning", "Select a signature first")
 
-    def on_search_click(self):
-        """Обработчик нажатия кнопки 'Найти'"""
-        search_text = self.search_entry.get()
-        print(f"Поиск: {search_text}")  # Вывод в консоль
-        # В разработке
+    def on_double_click(self, index):
+        row = index.row()
+        global_id = self.table.item(row, 0).text()
+        dialog = SimpleEditDialog(global_id, self.db, self)
+        if dialog.exec_():
+            self.on_search()
 
-    def add_sample_data(self):
-        """Добавляет примеры данных в таблицу"""
-        sample_data = [
-            ("GLB001", "John", "Smith", "IT Department"),
-            ("GLB002", "Anna", "Johnson", "Sales Department"),
-            ("GLB003", "Mike", "Williams", "HR Department"),
-            ("GLB004", "Sarah", "Brown", "Marketing"),
-            ("GLB005", "David", "Miller", "Finance"),
-            ("GLB006", "Emma", "Davis", "Operations"),
-            ("GLB007", "James", "Wilson", "IT Department"),
-            ("GLB008", "Lisa", "Moore", "Sales Department"),
-            ("GLB009", "Robert", "Taylor", "HR Department"),
-            ("GLB010", "Maria", "Anderson", "Marketing")
+
+class SimpleEditDialog(QDialog):
+    def __init__(self, global_id=None, db=None, parent=None):
+        super().__init__(parent)
+        self.global_id = global_id
+        self.db = db
+        self.initUI()
+        if global_id:
+            self.load_user_data()
+
+    def initUI(self):
+        title = "Edit Signature" if self.global_id else "Create Signature"
+        self.setWindowTitle(title)
+        self.setMinimumWidth(500)
+
+        layout = QVBoxLayout()
+
+        # Поля с правильными названиями
+        fields = [
+            ("global_id", "Global ID", 0),
+            ("signature_name", "Signature Name", 1),
+            ("first_name", "First Name", 2),
+            ("last_name", "Last Name", 3),
+            ("job", "Job Title", 4),
+            ("email", "Email", 5),
+            ("greet", "Greeting", 6),
+            ("work_number", "Work Phone", 7),
+            ("personal_number", "Personal Phone", 8),
+            ("social_number", "Social Number", 9),
+            ("cut_number", "Cut Number", 10),
         ]
 
-        for data in sample_data:
-            self.tree.insert("", "end", values=data)
+        self.inputs = {}
+        for field, label, idx in fields:
+            self.inputs[field] = QLineEdit()
+            layout.addWidget(QLabel(label))
+            layout.addWidget(self.inputs[field])
 
-    def on_table_select(self, event):
-        """Обработчик выбора строки в таблице"""
-        selected_items = self.tree.selection()
-        if selected_items:
-            self.btn_delete.configure(
-                state="normal",
-                fg_color="#d9534f",  # Красный цвет когда активна
-                hover_color="#c9302c"  # Красный ховер когда активна
-            )
-            # Получаем данные выбранной строки
-            item = selected_items[0]
-            values = self.tree.item(item, "values")
-            self.current_signature = {
-                "global_id": values[0],
-                "first_name": values[1],
-                "last_name": values[2],
-                "department": values[3]
-            }
-        else:
-            self.btn_delete.configure(
-                state="disabled",
-                fg_color="#a0a0a0",  # Серый цвет когда неактивна
-                hover_color="#a0a0a0"  # Серый ховер когда неактивна
-            )
-            self.current_signature = None
+        # Комбобоксы
+        layout.addWidget(QLabel("Hotel (1=Hyatt Regency, 2=Hyatt Place, 3=Both)"))
+        self.cb_hotel = QComboBox()
+        self.cb_hotel.addItems(["", "Hyatt Regency", "Hyatt Place", "Both"])
+        layout.addWidget(self.cb_hotel)
 
-    def create_signature(self):
-        """Создаёт новую подпись"""
-        # Добавляем тестовые данные
-        new_id = f"GLB{len(self.tree.get_children()) + 1:03d}"
-        new_data = (new_id, "New", "User", "New Department")
-        self.tree.insert("", "end", values=new_data)
+        layout.addWidget(QLabel("Language (1=ru, 2=en)"))
+        self.cb_language = QComboBox()
+        self.cb_language.addItems(["", "Russian", "English"])
+        layout.addWidget(self.cb_language)
 
-    def delete_signature(self):
-        """Удаляет выбранную подпись"""
-        if not self.current_signature:
-            messagebox.showwarning("Ошибка", "Выберите подпись из таблицы")
+        layout.addWidget(QLabel("Type (1=full, 2=cut)"))
+        self.cb_type = QComboBox()
+        self.cb_type.addItems(["", "Full", "Cut"])
+        layout.addWidget(self.cb_type)
+
+        # URL поля
+        url_fields = [
+            ("banner_path", "Banner Path", 14),
+            ("banner_url", "Banner URL", 15),
+            ("site_url", "Site URL", 16),
+        ]
+
+        for field, label, idx in url_fields:
+            self.inputs[field] = QLineEdit()
+            layout.addWidget(QLabel(label))
+            layout.addWidget(self.inputs[field])
+
+        # Чекбоксы
+        self.checkboxes = {}
+        conf_fields = [
+            ("conf_greet", "Enable Greeting", 17),
+            ("conf_fname", "Enable First Name", 18),
+            ("conf_job", "Enable Job", 19),
+            ("conf_hotel", "Enable Hotel", 20),
+            ("conf_phone_numbers", "Enable Phone Numbers", 21),
+            ("conf_mail", "Enable Email", 22),
+            ("conf_banner", "Enable Banner", 23),
+            ("conf_site", "Enable Site", 24),
+            ("conf_main_sig", "Enable Main Signature", 25),
+        ]
+
+        for field, label, idx in conf_fields:
+            self.checkboxes[field] = QCheckBox(label)
+            layout.addWidget(self.checkboxes[field])
+
+        # Кнопки
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        cancel_btn = QPushButton("Cancel")
+
+        save_btn.clicked.connect(self.accept)
+        cancel_btn.clicked.connect(self.reject)
+
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+
+    def load_user_data(self):
+        if not self.global_id or not self.db:
             return
 
-        if messagebox.askyesno("Подтверждение",
-                               f"Удалить подпись '{self.current_signature['first_name']} {self.current_signature['last_name']}'?"):
-            selected_items = self.tree.selection()
-            for item in selected_items:
-                self.tree.delete(item)
+        data = self.db.get_user_by_id(self.global_id)
+        if not data or len(data) == 0:
+            return
 
-            self.current_signature = None
-            self.btn_delete.configure(
-                state="disabled",
-                fg_color="#a0a0a0",  # Серый цвет после удаления
-                hover_color="#a0a0a0"  # Серый ховер после удаления
-            )
+        row = data[0]
 
-if __name__ == "__main__":
-    app = SignatureApp()
-    app.mainloop()
+        # Заполняем текстовые поля
+        for field, widget in self.inputs.items():
+            # Находим индекс поля
+            field_indices = {
+                'signature_id': 0, 'global_id': 1, 'signature_name': 2, 'first_name': 3,
+                'last_name': 4, 'job': 5, 'email': 6, 'greet': 7,
+                'work_number': 8, 'personal_number': 9, 'social_number': 10,
+                'cut_number': 11, 'banner_path': 15, 'banner_url': 16,
+                'site_url': 17
+            }
+
+            if field in field_indices:
+                idx = field_indices[field]
+                if idx < len(row) and row[idx] is not None:
+                    widget.setText(str(row[idx]))
+
+        # Комбобоксы
+        if len(row) > 12 and row[12] is not None:
+            try:
+                self.cb_hotel.setCurrentIndex(int(row[12]))
+            except:
+                pass
+
+        if len(row) > 13 and row[13] is not None:
+            try:
+                self.cb_language.setCurrentIndex(int(row[13]))
+            except:
+                pass
+
+        if len(row) > 14 and row[14] is not None:
+            try:
+                self.cb_type.setCurrentIndex(int(row[14]))
+            except:
+                pass
+
+        # Чекбоксы
+        checkbox_indices = {
+            'conf_greet': 18, 'conf_fname': 19, 'conf_job': 20,
+            'conf_hotel': 21, 'conf_phone_numbers': 22, 'conf_mail': 23,
+            'conf_banner': 24, 'conf_site': 25, 'conf_main_sig': 26
+        }
+
+        for field, checkbox in self.checkboxes.items():
+            if field in checkbox_indices:
+                idx = checkbox_indices[field]
+                if idx < len(row) and row[idx] is not None:
+                    # checkbox.setChecked(bool(row[idx]))
+                    checkbox.setChecked(row[idx] == 1)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
