@@ -188,6 +188,7 @@ class GlobalSettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.db = DatabaseManager()
+        self.setWindowIcon(QIcon('icon.ico'))
         self.initUI()
         self.load_settings()
 
@@ -319,13 +320,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.db = DatabaseManager()
+        self.setWindowIcon(QIcon('icon.ico'))
         self.initUI()
         self.load_data()
         # Изначально деактивируем кнопки, требующие выбора
         self.update_button_states()
 
     def initUI(self):
-        self.setWindowTitle('Signature Management')
+        self.setWindowTitle('Signature Manager')
         self.setGeometry(100, 100, 1000, 600)
 
         central = QWidget()
@@ -501,6 +503,7 @@ class SimpleEditDialog(QDialog):
         self.signature_id = signature_id
         self.db = db
         self.mode = mode  # 'create', 'edit', or 'copy'
+        self.setWindowIcon(QIcon('icon.ico'))
         self.initUI()
         if signature_id and mode in ['edit', 'copy']:
             self.load_user_data()
