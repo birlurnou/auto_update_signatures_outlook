@@ -4,7 +4,298 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import configparser
 import pyodbc
+import tempfile
+import webbrowser
 
+
+def create_email_signature(first_name, last_name, job, email, greet,
+                           work_number, personal_number, social_number, cut_number,
+                           cb_hotel, cb_language, cb_type,
+                           banner_path, banner_url, site_url,
+                           conf_greet,
+                           conf_fname,
+                           conf_job,
+                           conf_hotel,
+                           conf_phone_numbers,
+                           conf_mail,
+                           conf_banner,
+                           conf_site,
+                           ):
+    # read ini file
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    # [hotel]
+    color_rg = config['hotel']['color_rg']
+    color_ze = config['hotel']['color_ze']
+    address_rg_ru = config['hotel']['address_rg_ru']
+    address_ze_ru = config['hotel']['address_ze_ru']
+    address_rg_en = config['hotel']['address_rg_en']
+    address_ze_en = config['hotel']['address_ze_en']
+    hotel_name_rg_ru = config['hotel']['hotel_name_rg_ru']
+    hotel_name_ze_ru = config['hotel']['hotel_name_ze_ru']
+    hotel_name_rg_en = config['hotel']['hotel_name_rg_en']
+    hotel_name_ze_en = config['hotel']['hotel_name_ze_en']
+
+    # color and config from hotel
+    hotel_config = None
+    if cb_language == 1:
+        hotel_config = {
+            1: {
+                'color': f'{color_rg}',
+                'address': f'{address_rg_ru}',
+                'hotel_name': [f'{hotel_name_rg_ru}']
+            },
+            2: {
+                'color': f'{color_ze}',
+                'address': f'{address_ze_ru}',
+                'hotel_name': [f'{hotel_name_ze_ru}']
+            },
+            3: {
+                'color': f'{color_rg}',
+                'address': f'{address_rg_ru}',
+                'hotel_name': [f'{hotel_name_rg_ru}', f'{hotel_name_ze_ru}']
+            }
+        }
+    elif cb_language == 2:
+        hotel_config = {
+            1: {
+                'color': f'{color_rg}',
+                'address': f'{address_rg_en}',
+                'hotel_name': [f'{hotel_name_rg_en}']
+            },
+            2: {
+                'color': f'{color_ze}',
+                'address': f'{address_ze_en}',
+                'hotel_name': [f'{hotel_name_ze_en}']
+            },
+            3: {
+                'color': f'{color_rg}',
+                'address': f'{address_rg_en}',
+                'hotel_name': [f'{hotel_name_rg_en}', f'{hotel_name_ze_en}']
+            }
+        }
+    if not hotel_config:
+        return None
+    config_hotel = hotel_config.get(cb_hotel, None)
+
+    # full name
+    full_name = f'{first_name} {last_name}'.upper()
+
+    # [phones]
+    work_tag = config['phones']['work_tag']
+    pers_tag = config['phones']['pers_tag']
+    soc_tag = config['phones']['soc_tag']
+
+    phones_html = ''
+
+    # add phones
+    if conf_phone_numbers == 1:
+        # work phones
+        if work_number:
+            phones_html += f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
+mso-bidi-font-weight:bold'> {work_tag}&nbsp;&nbsp;</span><span style='font-size:10.0pt;
+font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+
+        # mobile + wa
+        if personal_number and social_number:
+            phones_html += f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {pers_tag}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
+<o:p></o:p>
+</p>'''
+        elif personal_number:
+            phones_html += f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
+mso-bidi-font-weight:bold'>{pers_tag}&nbsp;</span><span style='font-size:10.0pt;font-family:
+"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+        elif social_number and not work_number:
+            phones_html += f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
+mso-bidi-font-weight:bold'>{soc_tag}</span><span style='font-size:10.0pt;font-family:
+"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+        elif social_number != '':
+            phones_html = f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {work_tag}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
+<o:p></o:p>
+</p>'''
+
+    # greeting
+    if greet and conf_greet == 1:
+        greeting = f'''
+<p class=MsoNormal><span style='font-size:10.0pt;font-family:"Arial",sans-serif;
+color:black'>{greet},<o:p></o:p></span></p>
+<p class=MsoNormal><span style='font-size:10.0pt;font-family:"Arial",sans-serif;
+color:black'><o:p>&nbsp;</o:p></span></p>'''
+
+    else:
+        greeting = ''
+
+    # f name
+    full_name_html = ''
+    if conf_fname == 1:
+        full_name_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:{config_hotel["color"]};text-transform:
+uppercase'>{full_name}<o:p></o:p></span></b></p>'''
+
+    # job
+    job_html = ''
+    space_after_job = ''
+    if conf_job == 1:
+        job_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><span style='font-size:10.0pt;mso-bidi-font-size:
+9.0pt;line-height:120%;font-family:"Arial",sans-serif;mso-bidi-font-weight:
+bold'>{job.capitalize()}<o:p></o:p></span></p>'''
+
+        # space_after_job
+        space_after_job = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='mso-ascii-font-family:Calibri;mso-hansi-font-family:Calibri;mso-bidi-font-family:
+Calibri'><o:p>&nbsp;</o:p></span></p>'''
+
+    # hotel and address
+    hotel_and_address = ''
+    space_after_address = ''
+    if conf_hotel == 1:
+        for item in config_hotel["hotel_name"]:
+            hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif;
+color:{config_hotel["color"]}'>{item.replace("<br>", "<o:p></o:p></span></p><p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:\"Arial\",sans-serif; color:{config[\"color\"]}'>")}<o:p></o:p></span></p>'''
+        hotel_and_address += f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='font-size:10.0pt;mso-bidi-font-size:11.0pt;font-family:"Arial",sans-serif'>
+{config_hotel["address"]}<o:p></o:p></span></p>'''
+
+        # space_after_address
+        space_after_address = '''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>'''
+
+    # email
+    email_html = ''
+    if conf_mail == 1:
+        email_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
+<span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}'> E&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-language:
+EN-US'><a href="mailto:{email}">{email}</a></span><span
+style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>'''
+
+    # banner
+    banner_html = ''
+    if conf_banner == 1 and banner_path:
+        if banner_path[-3:] == 'png' or banner_path[-3:] == 'jpg':
+            try:
+                with open(banner_path, 'rb'):
+                    banner_html = f'''
+                    <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+                    line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+                    line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+                    <p class=MsoNormal><a href="{banner_url}">
+                    <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
+                    </a><o:p></o:p></p>'''
+
+            except FileNotFoundError:
+                if banner_path[:-3] == 'png':
+                    banner_path = banner_path[:-3] + 'jpg'
+                else:
+                    banner_path = banner_path[:-3] + 'png'
+
+                with open(banner_path, 'rb'):
+                    banner_html = f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+<p class=MsoNormal><a href="{banner_url}">
+<img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
+</a><o:p></o:p></p>'''
+
+    # site
+    site_html = ''
+    if conf_site == 1:
+        site_html = f'''
+<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config_hotel["color"]};'>
+    <a href='{site_url}' style='color: inherit; text-decoration: none;'>{site_url}</a>
+</p>'''
+
+    # full html
+    if cb_type != 1:
+        space_after_job = ''
+        hotel_and_address = ''
+        space_after_address = ''
+        phones_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
+style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
+mso-bidi-font-weight:bold'></span><span style='font-size:10.0pt;
+font-family:"Arial",sans-serif;color:black'>{cut_number if cut_number else ''}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+        email_html = ''
+    html_signature = f'''<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1251">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 15">
+<meta name=Originator content="Microsoft Word 15">
+<!--[if !mso]>
+<style>
+v\\:* {{behavior:url(#default#VML);}}
+o\\:* {{behavior:url(#default#VML);}}
+w\\:* {{behavior:url(#default#VML);}}
+.shape {{behavior:url(#default#VML);}}
+</style>
+<![endif]-->
+<style>
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{{margin:0cm;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:11.0pt;
+	font-family:"Calibri",sans-serif;
+	mso-fareast-font-family:"Times New Roman";
+	mso-bidi-font-family:"Times New Roman";}}
+</style>
+</head>
+<body lang=RU link="#0563C1" vlink="#954F72" style='tab-interval:35.4pt'>
+<div class=WordSection1>
+
+{greeting}
+
+{full_name_html}
+
+{job_html}
+
+{space_after_job}
+
+{hotel_and_address}
+
+{space_after_address}
+
+{phones_html}
+
+{email_html}
+
+{banner_html}
+
+{site_html}
+
+<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+</div>
+</body>
+</html>'''
+
+    return html_signature
 
 class DatabaseManager:
     def __init__(self):
@@ -107,7 +398,7 @@ class DatabaseManager:
             conn.close()
 
     def get_all_users(self):
-        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures'
+        query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures ORDER BY signature_id ASC'
         return self.execute_query(query, fetch_all=True)
 
     def search_users(self, search_term):
@@ -250,13 +541,16 @@ class GlobalSettingsDialog(QDialog):
         # Кнопки
         button_layout = QHBoxLayout()
         save_btn = QPushButton("Save")
+        preview_btn = QPushButton("Preview")
         cancel_btn = QPushButton("Cancel")
 
         save_btn.clicked.connect(self.on_save)
+        preview_btn.clicked.connect(self.on_preview)
         cancel_btn.clicked.connect(self.reject)
 
         button_layout.addStretch()
         button_layout.addWidget(save_btn)
+        button_layout.addWidget(preview_btn)
         button_layout.addWidget(cancel_btn)
 
         main_layout.addLayout(button_layout)
@@ -509,7 +803,7 @@ class SimpleEditDialog(QDialog):
             self.load_user_data()
             if mode == 'copy':
                 self.clear_global_id()  # Очищаем global_id для копирования
-
+                self.clear_signature_name() # Очищаем signature_name для копирования
     def initUI(self):
         if self.mode == 'create':
             title = "Create Signature"
@@ -670,13 +964,16 @@ class SimpleEditDialog(QDialog):
         # Кнопки
         button_layout = QHBoxLayout()
         save_btn = QPushButton("Save")
+        preview_btn = QPushButton("Preview")
         cancel_btn = QPushButton("Cancel")
 
         save_btn.clicked.connect(self.on_save)
+        preview_btn.clicked.connect(self.on_preview)
         cancel_btn.clicked.connect(self.reject)
 
         button_layout.addStretch()
         button_layout.addWidget(save_btn)
+        button_layout.addWidget(preview_btn)
         button_layout.addWidget(cancel_btn)
 
         main_layout.addLayout(button_layout)
@@ -686,6 +983,11 @@ class SimpleEditDialog(QDialog):
         """Очищает поле Global ID для режима копирования"""
         if 'global_id' in self.inputs:
             self.inputs['global_id'].clear()
+
+    def clear_signature_name(self):
+        """Очищает поле Signature Name для режима копирования"""
+        if 'signature_name' in self.inputs:
+            self.inputs['signature_name'].clear()
 
     def load_user_data(self):
         if not self.signature_id or not self.db:
@@ -794,6 +1096,88 @@ class SimpleEditDialog(QDialog):
             else:
                 QMessageBox.warning(self, "Error", "Failed to update signature!")
 
+    def on_preview(self):
+        """Предварительный просмотр подписи"""
+        # Собираем данные из полей (аналогично on_save, но без сохранения в БД)
+        first_name = self.inputs['first_name'].text().strip()
+        last_name = self.inputs['last_name'].text().strip()
+        job = self.inputs['job'].text().strip()
+        email = self.inputs['email'].text().strip()
+        greet = self.inputs['greet'].text().strip()
+        work_number = self.inputs['work_number'].text().strip()
+        personal_number = self.inputs['personal_number'].text().strip()
+        social_number = self.inputs['social_number'].text().strip()
+        cut_number = self.inputs['cut_number'].text().strip()
+
+        cb_hotel = self.cb_hotel.currentIndex()
+        cb_language = self.cb_language.currentIndex()
+        cb_type = self.cb_type.currentIndex()
+
+        banner_path = self.inputs['banner_path'].text().strip()
+        banner_url = self.inputs['banner_url'].text().strip()
+        site_url = self.inputs['site_url'].text().strip()
+
+        # Получаем значения чекбоксов
+        conf_greet = 1 if self.checkboxes['conf_greet'].isChecked() else 0
+        conf_fname = 1 if self.checkboxes['conf_fname'].isChecked() else 0
+        conf_job = 1 if self.checkboxes['conf_job'].isChecked() else 0
+        conf_hotel = 1 if self.checkboxes['conf_hotel'].isChecked() else 0
+        conf_phone_numbers = 1 if self.checkboxes['conf_phone_numbers'].isChecked() else 0
+        conf_mail = 1 if self.checkboxes['conf_mail'].isChecked() else 0
+        conf_banner = 1 if self.checkboxes['conf_banner'].isChecked() else 0
+        conf_site = 1 if self.checkboxes['conf_site'].isChecked() else 0
+        conf_main_sig = 1 if self.checkboxes['conf_main_sig'].isChecked() else 0
+
+        # Вызываем функцию создания подписи
+        html_content = create_email_signature(
+            first_name, last_name, job, email, greet,
+            work_number, personal_number, social_number, cut_number,
+            cb_hotel, cb_language, cb_type,
+            banner_path, banner_url, site_url,
+            conf_greet, conf_fname, conf_job, conf_hotel,
+            conf_phone_numbers, conf_mail, conf_banner, conf_site
+        )
+
+        if html_content:
+            # Способ 1: Открыть во встроенном браузере (QWebEngineView)
+            try:
+                from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+                preview_dialog = QDialog(self)
+                preview_dialog.setWindowTitle("Signature Preview")
+                preview_dialog.resize(800, 600)
+
+                browser = QWebEngineView()
+                browser.setHtml(html_content)
+
+                layout = QVBoxLayout(preview_dialog)
+                layout.addWidget(browser)
+
+                preview_dialog.exec_()
+
+            except ImportError:
+                # Способ 2: Сохранить во временный файл и открыть в браузере
+                import tempfile
+                import webbrowser
+                import os
+
+                # Создаем временную директорию если её нет
+                temp_dir = os.path.join(os.path.dirname(__file__), "temp_sig")
+                os.makedirs(temp_dir, exist_ok=True)
+
+                # Создаем временный файл
+                temp_file = os.path.join(temp_dir, f"preview_{first_name}_{last_name}.htm")
+
+                with open(temp_file, 'w', encoding='windows-1251') as f:
+                    f.write(html_content)
+
+                # Открываем в браузере по умолчанию
+                webbrowser.open(f"file://{os.path.abspath(temp_file)}")
+
+                QMessageBox.information(self, "Preview",
+                                        "Signature opened in browser. Temporary file saved in temp_sig folder.")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to generate signature preview")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
