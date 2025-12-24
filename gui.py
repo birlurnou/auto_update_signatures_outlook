@@ -629,6 +629,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Signature Manager')
         self.setGeometry(100, 100, 1000, 600)
 
+        # Увеличить шрифт для всего главного окна
+        font = self.font()
+        font.setPointSize(9)
+        self.setFont(font)
+
         central = QWidget()
         self.setCentralWidget(central)
         layout = QHBoxLayout(central)
@@ -665,8 +670,9 @@ class MainWindow(QMainWindow):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.doubleClicked.connect(self.on_double_click)
-        # Подключаем сигнал изменения выделения
-        self.table.itemSelectionChanged.connect(self.on_selection_changed)
+
+        # ПОДКЛЮЧАЕМ СИГНАЛ selectionChanged - ВАЖНО!
+        self.table.selectionModel().selectionChanged.connect(self.on_selection_changed)
 
         # Стиль таблицы
         palette = self.table.palette()
@@ -677,9 +683,8 @@ class MainWindow(QMainWindow):
         left_layout.addLayout(search_layout)
         left_layout.addWidget(self.table)
 
-        # Снятие выделения
-        self.table.setMouseTracking(True)  # Включаем отслеживание мыши
-        self.table.viewport().installEventFilter(self)  # Устанавливаем фильтр событий
+        # Устанавливаем фильтр событий для таблицы
+        self.table.viewport().installEventFilter(self)
 
         # Правая часть с кнопками
         right_widget = QWidget()
@@ -713,12 +718,19 @@ class MainWindow(QMainWindow):
 
     # выравнивание
     def eventFilter(self, source, event):
+        """Обработчик событий для снятия выделения"""
         if source is self.table.viewport() and event.type() == QEvent.MouseButtonPress:
-            # Если кликнули на пустое место в таблице
-            index = self.table.indexAt(event.pos())
-            if not index.isValid():
+            # Получаем позицию клика
+            pos = event.pos()
+            # Проверяем, есть ли элемент под курсором
+            item = self.table.itemAt(pos)
+
+            if item is None:
+                # Клик на пустое место - снимаем выделение
                 self.table.clearSelection()
-                return True
+                # Обновляем состояние кнопок
+                self.update_button_states()
+
         return super().eventFilter(source, event)
 
     def load_data(self, data=None):
@@ -739,16 +751,16 @@ class MainWindow(QMainWindow):
                         type_map = {1: "Full", 2: "Cut"}
                         item_text = type_map.get(value, "")
                     elif col_idx == 8:
-                        main_map = {1: 'OK', 2: ''}
+                        main_map = {1: '✔️', 2: ''}
                         item_text = main_map.get(value, "")
                     elif col_idx == 9:
-                        greet_map = {1: 'OK', 2: ''}
+                        greet_map = {1: '✔️', 2: ''}
                         item_text = greet_map.get(value, "")
                     elif col_idx == 10:
-                        banner_map = {1: 'OK', 2: ''}
+                        banner_map = {1: '✔️', 2: ''}
                         item_text = banner_map.get(value, "")
                     elif col_idx == 11:
-                        site_map = {1: 'OK', 2: ''}
+                        site_map = {1: '✔️', 2: ''}
                         item_text = site_map.get(value, "")
 
                     item = QTableWidgetItem(item_text)
@@ -777,18 +789,22 @@ class MainWindow(QMainWindow):
 
     def update_button_states(self):
         """Обновляет состояние кнопок в зависимости от выбора в таблице"""
-        has_selection = self.table.currentRow() >= 0
+        # Проверяем, есть ли выделенные строки
+        selected_rows = self.table.selectionModel().selectedRows()
+
+        # Если есть выделенные строки
+        has_valid_selection = len(selected_rows) > 0
 
         # Кнопки, которые требуют выбора элемента
-        self.copy_btn.setEnabled(has_selection)
-        self.edit_btn.setEnabled(has_selection)
-        self.delete_btn.setEnabled(has_selection)
+        self.copy_btn.setEnabled(has_valid_selection)
+        self.edit_btn.setEnabled(has_valid_selection)
+        self.delete_btn.setEnabled(has_valid_selection)
 
         # Кнопка Create всегда активна
         self.create_btn.setEnabled(True)
         self.more_settings_btn.setEnabled(True)
 
-    def on_selection_changed(self):
+    def on_selection_changed(self, selected, deselected):
         """Обработчик изменения выделения в таблице"""
         self.update_button_states()
 
@@ -803,8 +819,10 @@ class MainWindow(QMainWindow):
             self.on_search()
 
     def on_edit(self):
-        row = self.table.currentRow()
-        if row >= 0:
+        """Обработчик кнопки Edit"""
+        selected_rows = self.table.selectionModel().selectedRows()
+        if selected_rows:
+            row = selected_rows[0].row()
             signature_id = self.table.item(row, 0).text()
             dialog = SimpleEditDialog(signature_id, self.db, self, mode='edit')
             if dialog.exec_():
@@ -813,8 +831,10 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
     def on_copy(self):
-        row = self.table.currentRow()
-        if row >= 0:
+        """Обработчик кнопки Copy"""
+        selected_rows = self.table.selectionModel().selectedRows()
+        if selected_rows:
+            row = selected_rows[0].row()
             signature_id = self.table.item(row, 0).text()
             dialog = SimpleEditDialog(signature_id, self.db, self, mode='copy')
             if dialog.exec_():
@@ -827,15 +847,16 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def on_delete(self):
-        row = self.table.currentRow()
-        if row >= 0:
+        """Обработчик кнопки Delete"""
+        selected_rows = self.table.selectionModel().selectedRows()
+        if selected_rows:
+            row = selected_rows[0].row()
             signature_id = self.table.item(row, 0).text()
             reply = QMessageBox.question(self, "Confirm", "Delete this signature?",
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 success = self.db.delete_user(signature_id)
                 if success:
-                    # QMessageBox.information(self, "Success", "Signature deleted successfully!")
                     self.on_search()
                 else:
                     QMessageBox.warning(self, "Error", "Failed to delete signature!")
