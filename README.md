@@ -7,7 +7,7 @@ Script for auto update signature on Outlook in a corporate environment
 
 2. On the administration side, there will be an interface for working with signature data and a database.
 
-**Plans**
+~~**Plans**~~ **99% complete**
 
 *main.py*
 
@@ -25,10 +25,10 @@ Script for auto update signature on Outlook in a corporate environment
 
 *gui.py*
 
-* Sketch out an interface template and think over the little things (locally in an excel file)
+* ~~Sketch out an interface template and think over the little things~~
 
-* ...
+* ~~Create interface~~
 
-* ...
+* ~~Set up logic~~
 
-* ...
+* ~~Minor fixes~~
