@@ -482,6 +482,9 @@ class GlobalSettingsDialog(QDialog):
         self.db = DatabaseManager()
         self.setWindowIcon(QIcon('icon.ico'))
         self.initUI()
+        font = self.font()
+        font.setPointSize(9)  # Увеличить размер
+        self.setFont(font)
         self.load_settings()
 
     def initUI(self):
@@ -674,6 +677,10 @@ class MainWindow(QMainWindow):
         left_layout.addLayout(search_layout)
         left_layout.addWidget(self.table)
 
+        # Снятие выделения
+        self.table.setMouseTracking(True)  # Включаем отслеживание мыши
+        self.table.viewport().installEventFilter(self)  # Устанавливаем фильтр событий
+
         # Правая часть с кнопками
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
@@ -703,6 +710,16 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(left_widget, 3)
         layout.addWidget(right_widget, 1)
+
+    # выравнивание
+    def eventFilter(self, source, event):
+        if source is self.table.viewport() and event.type() == QEvent.MouseButtonPress:
+            # Если кликнули на пустое место в таблице
+            index = self.table.indexAt(event.pos())
+            if not index.isValid():
+                self.table.clearSelection()
+                return True
+        return super().eventFilter(source, event)
 
     def load_data(self, data=None):
         if data is None:
@@ -735,6 +752,10 @@ class MainWindow(QMainWindow):
                         item_text = site_map.get(value, "")
 
                     item = QTableWidgetItem(item_text)
+
+                    center_columns = [0, 6, 7, 8, 9, 10, 11]  # ID, Hotel, Type, Main, Greeting, Banner, Site
+                    if col_idx in center_columns:
+                        item.setTextAlignment(Qt.AlignCenter)
 
                     if col_idx == 6:  # Столбец Hotel
                         hotel_value = value
