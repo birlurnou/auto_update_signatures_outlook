@@ -605,7 +605,7 @@ class GlobalSettingsDialog(QDialog):
         )
 
         if success:
-            QMessageBox.information(self, "Success", "Global settings saved successfully!")
+            # QMessageBox.information(self, "Success", "Global settings saved successfully!")
             self.accept()
         else:
             QMessageBox.warning(self, "Error", "Failed to save settings to database!")
@@ -654,6 +654,7 @@ class MainWindow(QMainWindow):
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email'])
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setAlternatingRowColors(True)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -777,7 +778,7 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes:
                 success = self.db.delete_user(signature_id)
                 if success:
-                    QMessageBox.information(self, "Success", "Signature deleted successfully!")
+                    # QMessageBox.information(self, "Success", "Signature deleted successfully!")
                     self.on_search()
                 else:
                     QMessageBox.warning(self, "Error", "Failed to delete signature!")
@@ -1086,14 +1087,14 @@ class SimpleEditDialog(QDialog):
         if self.mode == 'create' or self.mode == 'copy':
             success = self.db.insert_user(data)
             if success:
-                QMessageBox.information(self, "Success", "Signature created successfully!")
+                # QMessageBox.information(self, "Success", "Signature created successfully!")
                 self.accept()
             else:
                 QMessageBox.warning(self, "Error", "Failed to create signature!")
         else:  # mode == 'edit'
             success = self.db.update_user(self.signature_id, data)
             if success:
-                QMessageBox.information(self, "Success", "Signature updated successfully!")
+                # QMessageBox.information(self, "Success", "Signature updated successfully!")
                 self.accept()
             else:
                 QMessageBox.warning(self, "Error", "Failed to update signature!")
