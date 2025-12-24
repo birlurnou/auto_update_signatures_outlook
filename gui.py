@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(['ID', 'Global ID', 'Sig name', 'First name', 'Last name', 'Email'])
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setAlternatingRowColors(True)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
@@ -127,10 +127,12 @@ class MainWindow(QMainWindow):
         right_layout.setSpacing(10)
 
         self.create_btn = QPushButton("Create")
+        self.copy_btn = QPushButton("Copy")  # Новая кнопка
         self.edit_btn = QPushButton("Edit")
+        self.more_settings_btn = QPushButton("More settings")  # Новая кнопка
         self.delete_btn = QPushButton("Delete")
 
-        buttons = [self.create_btn, self.edit_btn, self.delete_btn]
+        buttons = [self.create_btn, self.copy_btn, self.edit_btn, self.more_settings_btn, self.delete_btn]
         for btn in buttons:
             btn.setMinimumHeight(35)
             btn.setMinimumWidth(150)
@@ -140,7 +142,9 @@ class MainWindow(QMainWindow):
 
         # Подключаем кнопки
         self.create_btn.clicked.connect(self.on_create)
+        self.copy_btn.clicked.connect(self.on_copy)  # Новая функция
         self.edit_btn.clicked.connect(self.on_edit)
+        self.more_settings_btn.clicked.connect(self.on_more_settings)  # Новая функция
         self.delete_btn.clicked.connect(self.on_delete)
 
         layout.addWidget(left_widget, 3)
@@ -149,6 +153,11 @@ class MainWindow(QMainWindow):
     def load_data(self, data=None):
         if data is None:
             data = self.db.get_all_users()
+
+        # print(f"DEBUG: Data length: {len(data) if data else 0}")
+        # if data:
+        #     print(f"DEBUG: First row length: {len(data[0])}")
+        #     print(f"DEBUG: First row: {data[0]}")
 
         self.table.setRowCount(0)
         if data:
@@ -174,9 +183,27 @@ class MainWindow(QMainWindow):
         row = self.table.currentRow()
         if row >= 0:
             signature_id = self.table.item(row, 0).text()
-            dialog = SimpleEditDialog(global_id, self.db, self)
+            dialog = SimpleEditDialog(signature_id, self.db, self)  # Исправь
             if dialog.exec_():
                 self.on_search()
+        else:
+            QMessageBox.warning(self, "Warning", "Select a signature first")
+
+    def on_copy(self):
+        row = self.table.currentRow()
+        if row >= 0:
+            signature_id = self.table.item(row, 0).text()
+            # Реализуй логику копирования
+            QMessageBox.information(self, "Copy", "Copy functionality - to be implemented")
+        else:
+            QMessageBox.warning(self, "Warning", "Select a signature first")
+
+    def on_more_settings(self):
+        row = self.table.currentRow()
+        if row >= 0:
+            signature_id = self.table.item(row, 0).text()
+            # Реализуй логику дополнительных настроек
+            QMessageBox.information(self, "More Settings", "More settings functionality - to be implemented")
         else:
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
@@ -193,94 +220,171 @@ class MainWindow(QMainWindow):
 
     def on_double_click(self, index):
         row = index.row()
-        global_id = self.table.item(row, 0).text()
-        dialog = SimpleEditDialog(global_id, self.db, self)
+        signature_id = self.table.item(row, 0).text()
+        dialog = SimpleEditDialog(signature_id, self.db, self)  # Исправь
         if dialog.exec_():
             self.on_search()
 
 
 class SimpleEditDialog(QDialog):
-    def __init__(self, global_id=None, db=None, parent=None):
+    def __init__(self, signature_id=None, db=None, parent=None):  # Изменил на signature_id
         super().__init__(parent)
-        self.global_id = global_id
+        self.signature_id = signature_id  # Изменил на signature_id
         self.db = db
         self.initUI()
-        if global_id:
+        if signature_id:  # Изменил на signature_id
             self.load_user_data()
 
     def initUI(self):
-        title = "Edit Signature" if self.global_id else "Create Signature"
+        title = "Edit Signature" if self.signature_id else "Create Signature"  # Изменил
         self.setWindowTitle(title)
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(1000)  # Ещё шире
+        self.setMinimumHeight(600)  # Добавим высоту
 
-        layout = QVBoxLayout()
+        # Основной layout
+        main_layout = QVBoxLayout()
 
-        # Поля с правильными названиями
-        fields = [
-            ("global_id", "Global ID", 0),
-            ("signature_name", "Signature Name", 1),
-            ("first_name", "First Name", 2),
-            ("last_name", "Last Name", 3),
-            ("job", "Job Title", 4),
-            ("email", "Email", 5),
-            ("greet", "Greeting", 6),
-            ("work_number", "Work Phone", 7),
-            ("personal_number", "Personal Phone", 8),
-            ("social_number", "Social Number", 9),
-            ("cut_number", "Cut Number", 10),
+        # Scroll area чтобы всё поместилось
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+
+        # Контейнер с двумя колонками
+        columns_widget = QWidget()
+        columns_layout = QHBoxLayout(columns_widget)
+        columns_layout.setSpacing(20)
+
+        # Левая колонка
+        left_column = QWidget()
+        left_layout = QVBoxLayout(left_column)
+        left_layout.setSpacing(10)
+
+        # Правая колонка
+        right_column = QWidget()
+        right_layout = QVBoxLayout(right_column)
+        right_layout.setSpacing(10)
+
+        # Создаём все поля заранее
+        self.inputs = {}
+
+        # ЛЕВАЯ КОЛОНКА - Основные поля
+        left_group = QGroupBox("Basic Information")
+        left_group_layout = QFormLayout()
+        left_group_layout.setSpacing(8)
+
+        basic_fields = [
+            ("global_id", "Global ID"),
+            ("signature_name", "Signature Name"),
+            ("first_name", "First Name"),
+            ("last_name", "Last Name"),
+            ("job", "Job Title"),
+            ("email", "Email"),
+            ("greet", "Greeting"),
         ]
 
-        self.inputs = {}
-        for field, label, idx in fields:
+        for field, label in basic_fields:
             self.inputs[field] = QLineEdit()
-            layout.addWidget(QLabel(label))
-            layout.addWidget(self.inputs[field])
+            left_group_layout.addRow(label + ":", self.inputs[field])
+
+        left_group.setLayout(left_group_layout)
+        left_layout.addWidget(left_group)
+
+        # Контакты тоже в левой колонке
+        contact_group = QGroupBox("Contact Information")
+        contact_layout = QFormLayout()
+        contact_layout.setSpacing(8)
+
+        contact_fields = [
+            ("work_number", "Work Phone"),
+            ("personal_number", "Personal Phone"),
+            ("social_number", "Social Number"),
+            ("cut_number", "Cut Number"),
+        ]
+
+        for field, label in contact_fields:
+            self.inputs[field] = QLineEdit()
+            contact_layout.addRow(label + ":", self.inputs[field])
+
+        contact_group.setLayout(contact_layout)
+        left_layout.addWidget(contact_group)
+        left_layout.addStretch()
+
+        # ПРАВАЯ КОЛОНКА - Настройки
+        settings_group = QGroupBox("Settings")
+        settings_layout = QFormLayout()
+        settings_layout.setSpacing(8)
 
         # Комбобоксы
-        layout.addWidget(QLabel("Hotel (1=Hyatt Regency, 2=Hyatt Place, 3=Both)"))
         self.cb_hotel = QComboBox()
         self.cb_hotel.addItems(["", "Hyatt Regency", "Hyatt Place", "Both"])
-        layout.addWidget(self.cb_hotel)
+        settings_layout.addRow("Hotel:", self.cb_hotel)
 
-        layout.addWidget(QLabel("Language (1=ru, 2=en)"))
         self.cb_language = QComboBox()
         self.cb_language.addItems(["", "Russian", "English"])
-        layout.addWidget(self.cb_language)
+        settings_layout.addRow("Language:", self.cb_language)
 
-        layout.addWidget(QLabel("Type (1=full, 2=cut)"))
         self.cb_type = QComboBox()
         self.cb_type.addItems(["", "Full", "Cut"])
-        layout.addWidget(self.cb_type)
+        settings_layout.addRow("Type:", self.cb_type)
+
+        settings_group.setLayout(settings_layout)
+        right_layout.addWidget(settings_group)
 
         # URL поля
+        url_group = QGroupBox("URLs")
+        url_layout = QFormLayout()
+        url_layout.setSpacing(8)
+
         url_fields = [
-            ("banner_path", "Banner Path", 14),
-            ("banner_url", "Banner URL", 15),
-            ("site_url", "Site URL", 16),
+            ("banner_path", "Banner Path"),
+            ("banner_url", "Banner URL"),
+            ("site_url", "Site URL"),
         ]
 
-        for field, label, idx in url_fields:
+        for field, label in url_fields:
             self.inputs[field] = QLineEdit()
-            layout.addWidget(QLabel(label))
-            layout.addWidget(self.inputs[field])
+            url_layout.addRow(label + ":", self.inputs[field])
 
-        # Чекбоксы
+        url_group.setLayout(url_layout)
+        right_layout.addWidget(url_group)
+
+        # Чекбоксы в правой колонке
+        features_group = QGroupBox("Enable Features")
+        features_layout = QGridLayout()
+        features_layout.setSpacing(10)
+
         self.checkboxes = {}
         conf_fields = [
-            ("conf_greet", "Enable Greeting", 17),
-            ("conf_fname", "Enable First Name", 18),
-            ("conf_job", "Enable Job", 19),
-            ("conf_hotel", "Enable Hotel", 20),
-            ("conf_phone_numbers", "Enable Phone Numbers", 21),
-            ("conf_mail", "Enable Email", 22),
-            ("conf_banner", "Enable Banner", 23),
-            ("conf_site", "Enable Site", 24),
-            ("conf_main_sig", "Enable Main Signature", 25),
+            ("conf_greet", "Enable Greeting"),
+            ("conf_fname", "Enable First Name"),
+            ("conf_job", "Enable Job"),
+            ("conf_hotel", "Enable Hotel"),
+            ("conf_phone_numbers", "Enable Phone Numbers"),
+            ("conf_mail", "Enable Email"),
+            ("conf_banner", "Enable Banner"),
+            ("conf_site", "Enable Site"),
+            ("conf_main_sig", "Enable Main Signature"),
         ]
 
-        for field, label, idx in conf_fields:
+        # Располагаем чекбоксы в 2 колонки для лучшего вида
+        for i, (field, label) in enumerate(conf_fields):
             self.checkboxes[field] = QCheckBox(label)
-            layout.addWidget(self.checkboxes[field])
+            row = i // 2  # 2 колонки
+            col = i % 2
+            features_layout.addWidget(self.checkboxes[field], row, col)
+
+        features_group.setLayout(features_layout)
+        right_layout.addWidget(features_group)
+        right_layout.addStretch()
+
+        # Добавляем колонки в горизонтальный layout
+        columns_layout.addWidget(left_column)
+        columns_layout.addWidget(right_column)
+
+        scroll_layout.addWidget(columns_widget)
+        scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll)
 
         # Кнопки
         button_layout = QHBoxLayout()
@@ -290,17 +394,18 @@ class SimpleEditDialog(QDialog):
         save_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)
 
+        button_layout.addStretch()
         button_layout.addWidget(save_btn)
         button_layout.addWidget(cancel_btn)
-        layout.addLayout(button_layout)
 
-        self.setLayout(layout)
+        main_layout.addLayout(button_layout)
+        self.setLayout(main_layout)
 
     def load_user_data(self):
-        if not self.global_id or not self.db:
+        if not self.signature_id or not self.db:  # Изменил на signature_id
             return
 
-        data = self.db.get_user_by_id(self.global_id)
+        data = self.db.get_user_by_id(self.signature_id)  # Изменил
         if not data or len(data) == 0:
             return
 
