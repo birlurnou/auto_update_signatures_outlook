@@ -43,6 +43,27 @@ class DatabaseManager:
             cursor.close()
             conn.close()
 
+    def execute_update(self, query, params=None):
+        """Выполняет UPDATE запрос"""
+        conn = self.get_connection()
+        if not conn:
+            return False
+        cursor = conn.cursor()
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            conn.commit()
+            return True
+        except pyodbc.Error as e:
+            print(f'Update error: {e}')
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+
     def get_all_users(self):
         query = 'SELECT signature_id, global_id, signature_name, first_name, last_name, email FROM signatures'
         return self.execute_query(query, fetch_all=True)
@@ -63,6 +84,160 @@ class DatabaseManager:
         if result:
             print(f"DEBUG: Found user, row length: {len(result[0])}")
         return result
+
+    def update_global_settings(self, banner_path_rg, banner_url_rg, site_url_rg,
+                               banner_path_ze, banner_url_ze, site_url_ze):
+        """Обновляет глобальные настройки для всех подписей"""
+        success = True
+
+        # Первый UPDATE для Regency (cb_hotel = 1 или 3)
+        query_rg = '''
+        UPDATE signatures 
+        SET banner_path = ?, banner_url = ?, site_url = ? 
+        WHERE cb_hotel = 1 OR cb_hotel = 3
+        '''
+        success_rg = self.execute_update(query_rg, [banner_path_rg, banner_url_rg, site_url_rg])
+
+        # Второй UPDATE для Place (cb_hotel = 2)
+        query_ze = '''
+        UPDATE signatures 
+        SET banner_path = ?, banner_url = ?, site_url = ? 
+        WHERE cb_hotel = 2
+        '''
+        success_ze = self.execute_update(query_ze, [banner_path_ze, banner_url_ze, site_url_ze])
+
+        return success_rg and success_ze
+
+
+class GlobalSettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.db = DatabaseManager()
+        self.initUI()
+        self.load_settings()
+
+    def initUI(self):
+        self.setWindowTitle('Global Settings')
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(200)
+
+        # Основной layout
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(15)
+
+        # Две колонки
+        columns_widget = QWidget()
+        columns_layout = QHBoxLayout(columns_widget)
+        columns_layout.setSpacing(20)
+
+        # Первая колонка - Regency
+        regency_group = QGroupBox("Regency")
+        regency_layout = QFormLayout()
+        regency_layout.setSpacing(10)
+
+        # Поля для Regency
+        self.banner_path_rg = QLineEdit()
+        regency_layout.addRow("Banner Path (RG):", self.banner_path_rg)
+
+        self.banner_url_rg = QLineEdit()
+        regency_layout.addRow("Banner URL (RG):", self.banner_url_rg)
+
+        self.site_url_rg = QLineEdit()
+        regency_layout.addRow("Site URL (RG):", self.site_url_rg)
+
+        regency_group.setLayout(regency_layout)
+
+        # Вторая колонка - Place
+        place_group = QGroupBox("Place")
+        place_layout = QFormLayout()
+        place_layout.setSpacing(10)
+
+        # Поля для Place
+        self.banner_path_ze = QLineEdit()
+        place_layout.addRow("Banner Path (ZE):", self.banner_path_ze)
+
+        self.banner_url_ze = QLineEdit()
+        place_layout.addRow("Banner URL (ZE):", self.banner_url_ze)
+
+        self.site_url_ze = QLineEdit()
+        place_layout.addRow("Site URL (ZE):", self.site_url_ze)
+
+        place_group.setLayout(place_layout)
+
+        # Добавляем колонки
+        columns_layout.addWidget(regency_group)
+        columns_layout.addWidget(place_group)
+
+        main_layout.addWidget(columns_widget)
+
+        # Кнопки
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        cancel_btn = QPushButton("Cancel")
+
+        save_btn.clicked.connect(self.on_save)
+        cancel_btn.clicked.connect(self.reject)
+
+        button_layout.addStretch()
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(cancel_btn)
+
+        main_layout.addLayout(button_layout)
+        self.setLayout(main_layout)
+
+    def load_settings(self):
+        """Загружает настройки из config.ini"""
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+
+        # Загружаем значения из config.ini
+        if 'global' in config:
+            self.banner_path_rg.setText(config['global'].get('banner_path_rg', ''))
+            self.banner_url_rg.setText(config['global'].get('banner_url_rg', ''))
+            self.site_url_rg.setText(config['global'].get('site_url_rg', ''))
+            self.banner_path_ze.setText(config['global'].get('banner_path_ze', ''))
+            self.banner_url_ze.setText(config['global'].get('banner_url_ze', ''))
+            self.site_url_ze.setText(config['global'].get('site_url_ze', ''))
+
+    def on_save(self):
+        """Обработчик нажатия кнопки Save"""
+        # Получаем значения из полей
+        banner_path_rg = self.banner_path_rg.text().strip()
+        banner_url_rg = self.banner_url_rg.text().strip()
+        site_url_rg = self.site_url_rg.text().strip()
+        banner_path_ze = self.banner_path_ze.text().strip()
+        banner_url_ze = self.banner_url_ze.text().strip()
+        site_url_ze = self.site_url_ze.text().strip()
+
+        # Сохраняем в config.ini
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+
+        if 'global' not in config:
+            config['global'] = {}
+
+        config['global']['banner_path_rg'] = banner_path_rg
+        config['global']['banner_url_rg'] = banner_url_rg
+        config['global']['site_url_rg'] = site_url_rg
+        config['global']['banner_path_ze'] = banner_path_ze
+        config['global']['banner_url_ze'] = banner_url_ze
+        config['global']['site_url_ze'] = site_url_ze
+
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+
+        # Выполняем UPDATE запросы в базу данных
+        success = self.db.update_global_settings(
+            banner_path_rg, banner_url_rg, site_url_rg,
+            banner_path_ze, banner_url_ze, site_url_ze
+        )
+
+        if success:
+            QMessageBox.information(self, "Success", "Global settings saved successfully!")
+            self.accept()
+        else:
+            QMessageBox.warning(self, "Error", "Failed to save settings to database!")
 
 
 class MainWindow(QMainWindow):
@@ -133,7 +308,7 @@ class MainWindow(QMainWindow):
         self.create_btn = QPushButton("Create")
         self.copy_btn = QPushButton("Copy")  # Новая кнопка
         self.edit_btn = QPushButton("Edit")
-        self.more_settings_btn = QPushButton("More settings")  # Новая кнопка
+        self.more_settings_btn = QPushButton("Global settings")  # Новая кнопка
         self.delete_btn = QPushButton("Delete")
 
         buttons = [self.create_btn, self.copy_btn, self.edit_btn, self.more_settings_btn, self.delete_btn]
@@ -157,11 +332,6 @@ class MainWindow(QMainWindow):
     def load_data(self, data=None):
         if data is None:
             data = self.db.get_all_users()
-
-        # print(f"DEBUG: Data length: {len(data) if data else 0}")
-        # if data:
-        #     print(f"DEBUG: First row length: {len(data[0])}")
-        #     print(f"DEBUG: First row: {data[0]}")
 
         self.table.setRowCount(0)
         if data:
@@ -222,7 +392,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Warning", "Select a signature first")
 
     def on_more_settings(self):
-        QMessageBox.information(self, "More Settings", "More settings functionality - to be implemented")
+        dialog = GlobalSettingsDialog(self)
+        dialog.exec_()
 
     def on_delete(self):
         row = self.table.currentRow()
