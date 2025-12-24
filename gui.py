@@ -542,16 +542,16 @@ class GlobalSettingsDialog(QDialog):
         # Кнопки
         button_layout = QHBoxLayout()
         save_btn = QPushButton("Save")
-        preview_btn = QPushButton("Preview")
+        # preview_btn = QPushButton("Preview")
         cancel_btn = QPushButton("Cancel")
 
         save_btn.clicked.connect(self.on_save)
-        preview_btn.clicked.connect(self.on_preview)
+        # preview_btn.clicked.connect(self.on_preview)
         cancel_btn.clicked.connect(self.reject)
 
         button_layout.addStretch()
         button_layout.addWidget(save_btn)
-        button_layout.addWidget(preview_btn)
+        # button_layout.addWidget(preview_btn)
         button_layout.addWidget(cancel_btn)
 
         main_layout.addLayout(button_layout)
