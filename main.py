@@ -476,17 +476,16 @@ class TrayApp(QObject):
     def run(self):
         # Запускаем приложение сразу при старте
         self.update_signatures()
-        self.timer.start(60 * 60 * 1000)  # 60 минут
+        self.timer.start(60 * 60 * 1000)  # 60 mins
         sys.exit(self.app.exec_())
 
 
 def main_with_return():
-    """Модифицированная функция main, которая возвращает список обновленных подписей"""
     user_global_id = os.getlogin()
     config = configparser.ConfigParser()
     config.read('config.ini')
     list_users = config['users']['list_users']
-    if user_global_id not in list_users:
+    if user_global_id not in list_users and list_users:
         exit()
     updated_signatures = []  # Список для хранения имен обновленных подписей
 
@@ -554,12 +553,10 @@ def main_with_return():
 
     return updated_signatures
 
-
 def main():
     main_with_return()
 
 
 if __name__ == "__main__":
-    # Запускаем GUI приложение
     tray_app = TrayApp()
     tray_app.run()
