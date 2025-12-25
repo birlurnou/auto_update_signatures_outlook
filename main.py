@@ -446,20 +446,25 @@ class TrayApp(QObject):
         self.update_complete_signal.emit(updated_signatures)
 
     def show_update_notification(self, signatures):
-        """Показать уведомление о добавленных подписях"""
+
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        conf_notification = config['settings']['notification']
+
         if signatures:
             signature_names = "\n".join(signatures)
             message = f"Обновлены подписи:\n{signature_names}"
         else:
             message = "Подписи не были обновлены"
 
-        # Показываем уведомление на 5 секунд
-        self.tray_icon.showMessage(
-            "Outlook Signature Updater",
-            message,
-            QSystemTrayIcon.NoIcon,
-            5000  # 5 секунд
-        )
+        if conf_notification == '1':
+            # Показываем уведомление на 5 секунд
+            self.tray_icon.showMessage(
+                "Outlook Signature Updater",
+                message,
+                QSystemTrayIcon.NoIcon,
+                5000  # 5 секунд
+            )
 
     def exit_app(self):
         if self.timer.isActive():
