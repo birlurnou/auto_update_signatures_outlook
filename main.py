@@ -28,7 +28,7 @@ def create_email_signature(first_name, last_name, job, email, greet,
 
     # read ini file
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('config.ini', encoding='utf-8')
     # [hotel]
     color_rg = config['hotel']['color_rg']
     color_ze = config['hotel']['color_ze']
@@ -194,32 +194,14 @@ lang=EN-US style='font-size:10.0pt;font-family:"Arial",sans-serif;mso-ansi-langu
 EN-US'><a href="mailto:{email}">{email}</a></span><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>'''
 
-    # banner
-    banner_html = ''
-    if conf_banner == 1 and banner_path:
-        if banner_path[-3:] == 'png' or banner_path[-3:] == 'jpg':
-            try:
-                with open(banner_path, 'rb'):
-                    banner_html = f'''
-                    <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
-                    line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
-                    line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
-        
-                    <p class=MsoNormal><a href="{banner_url}">
-                    <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
-                    </a><o:p></o:p></p>'''
-
-            except FileNotFoundError:
-                if banner_path[:-3] == 'png':
-                    banner_path = banner_path[:-3] + 'jpg'
-                else:
-                    banner_path = banner_path[:-3] + 'png'
-
+        # banner
+        banner_html = ''
+        if conf_banner == 1 and banner_path:
+            # Безопасное получение расширения файла
+            if banner_path.lower().endswith('.png') or banner_path.lower().endswith('.jpg'):
                 try:
-
                     with open(banner_path, 'rb'):
-                        banner_html = f'''
-<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+                        banner_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
 
@@ -227,7 +209,23 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
 </a><o:p></o:p></p>'''
                 except:
-                    banner_html = ''
+                    base, ext = os.path.splitext(banner_path)
+
+                    if ext.lower() == '.png':
+                        new_banner_path = base + '.jpg'
+                    else:
+                        new_banner_path = base + '.png'
+                    try:
+                        with open(new_banner_path, 'rb'):
+                            banner_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+<p class=MsoNormal><a href="{banner_url}">
+<img border=0 width=779 height=136 src="{new_banner_path}" style="border:none;">
+</a><o:p></o:p></p>'''
+                    except Exception as e:
+                        banner_html = ''
 
     # site
     site_html = ''
@@ -309,7 +307,7 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 def save_signature_to_file(html_content, signature_name, global_id, user_global_id):
     # read ini file
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('config.ini', encoding='utf-8')
     signatures_path = rf'C:\Users\{user_global_id}' + config['settings']['signatures_path']
     if not os.path.exists(signatures_path):
         os.makedirs(signatures_path)
@@ -323,7 +321,7 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
 def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('config.ini', encoding='utf-8')
     reg_path = rf'{sid}' + config['settings']['reg_path']
     signature_name = f'{global_id}-{signature_name}'
     try:
@@ -342,7 +340,7 @@ class DatabaseManager:
     def __init__(self):
         # read ini file
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read('config.ini', encoding='utf-8')
         self.SQL_SERVER = config['database']['SQL_SERVER']
         self.SQL_DB = config['database']['SQL_DB']
         self.SQL_USER = config['database']['SQL_USER']
@@ -452,7 +450,7 @@ class TrayApp(QObject):
     def show_update_notification(self, signatures):
 
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read('config.ini', encoding='utf-8')
         conf_notification = config['settings']['notification']
 
         if signatures:
@@ -487,7 +485,7 @@ class TrayApp(QObject):
 def main_with_return():
     user_global_id = os.getlogin()
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('config.ini', encoding='utf-8')
     list_users = config['users']['list_users']
     if user_global_id not in list_users and list_users:
         exit()
