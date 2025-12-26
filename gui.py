@@ -211,8 +211,10 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
                 else:
                     banner_path = banner_path[:-3] + 'png'
 
-                with open(banner_path, 'rb'):
-                    banner_html = f'''
+                try:
+
+                    with open(banner_path, 'rb'):
+                        banner_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
@@ -220,6 +222,8 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 <p class=MsoNormal><a href="{banner_url}">
 <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
 </a><o:p></o:p></p>'''
+                except:
+                    banner_html = ''
 
     # site
     site_html = ''
