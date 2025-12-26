@@ -461,7 +461,7 @@ class TrayApp(QObject):
         else:
             message = "Подписи не были обновлены"
 
-        if conf_notification.strip()  == '1':
+        if conf_notification.strip()  == '1' and message != "Подписи не были обновлены":
             # Показываем уведомление на 5 секунд
             self.tray_icon.showMessage(
                 "Outlook Signature Updater",
