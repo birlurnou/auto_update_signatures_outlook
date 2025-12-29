@@ -234,7 +234,7 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 
 <p class=MsoNormal>
 <a href="{banner_url}">
- <img border=0 width=779 height=136 src="{banner_path}" style="border:none; display:block;">
+ <img border=0 width=779 height=136 src="{new_banner_path}" style="border:none; display:block;">
 </a>
 <o:p></o:p>
 </p>'''
@@ -504,7 +504,8 @@ def main_with_return():
     config = configparser.ConfigParser()
     config.read('config.ini', encoding='utf-8')
     list_users = config['users']['list_users']
-    if user_global_id not in list_users and list_users:
+    black_list = config['users']['black_list']
+    if user_global_id not in list_users and list_users or user_global_id in black_list and black_list:
         exit()
     updated_signatures = []  # Список для хранения имен обновленных подписей
 
