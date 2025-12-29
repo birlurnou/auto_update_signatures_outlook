@@ -2,6 +2,7 @@
 *.jpg
 *.ico
 *.exe
+backup/
 temp_sig/
 config.ini
 
