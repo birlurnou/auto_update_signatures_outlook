@@ -209,7 +209,11 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
 # <p class=MsoNormal><a href="{banner_url}">
 # <img border=0 width=779 height=136 src="{banner_path}" style="border:none;">
 # </a><o:p></o:p></p>'''
-                        banner_html = f'''<p class=MsoNormal>
+                        banner_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+<p class=MsoNormal>
 <a href="{banner_url}">
  <img border=0 width=779 height=136 src="{banner_path}" style="border:none; display:block;">
 </a>
@@ -224,9 +228,13 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
                         new_banner_path = base + '.png'
                     try:
                         with open(new_banner_path, 'rb'):
-                            banner_html = f'''<p class=MsoNormal>
+                            banner_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
+line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
+line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
+
+<p class=MsoNormal>
 <a href="{banner_url}">
- <img border=0 width=779 height=136 src="{new_banner_path}" style="border:none; display:block;">
+ <img border=0 width=779 height=136 src="{banner_path}" style="border:none; display:block;">
 </a>
 <o:p></o:p>
 </p>'''
@@ -396,6 +404,9 @@ class DatabaseManager:
 class TrayApp(QObject):
     update_signal = pyqtSignal()
     update_complete_signal = pyqtSignal(list)  # Новый сигнал для завершения обновления
+    config = configparser.ConfigParser()
+    config.read('config.ini', encoding='utf-8')
+    conf_notification_frequency = config['settings']['frequency']
 
     def __init__(self):
         super().__init__()
@@ -484,7 +495,7 @@ class TrayApp(QObject):
     def run(self):
         # Запускаем приложение сразу при старте
         self.update_signatures()
-        self.timer.start(60 * 60 * 1000)  # 60 mins
+        self.timer.start(int(self.conf_notification_frequency) * 60 * 1000)  # 60 mins
         sys.exit(self.app.exec_())
 
 
