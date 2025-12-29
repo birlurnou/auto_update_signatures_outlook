@@ -224,13 +224,12 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
                         new_banner_path = base + '.png'
                     try:
                         with open(new_banner_path, 'rb'):
-                            banner_html = f'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
-line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
-line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
-
-<p class=MsoNormal><a href="{banner_url}">
-<img border=0 width=779 height=136 src="{new_banner_path}" style="border:none;">
-</a><o:p></o:p></p>'''
+                            banner_html = f'''<p class=MsoNormal>
+<a href="{banner_url}">
+ <img border=0 width=779 height=136 src="{new_banner_path}" style="border:none; display:block;">
+</a>
+<o:p></o:p>
+</p>'''
                     except Exception as e:
                         banner_html = ''
 
