@@ -243,14 +243,19 @@ line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p>
 
     # site
     site_html = ''
+    link_text = ''
+    if config_hotel['color'] == '#441D61':
+        link_text = 'rg-ekaterinburghotel.ru'
+    else:
+        link_text = 'placeekaterinburg.ru'
     if conf_site == 1:
         site_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
         
-<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif; color:{config_hotel["color"]};'>
-    <a href='{site_url}' style='color: inherit; text-decoration: none;'>{site_url}</a>
+<p class='MsoNormal' style='text-align:justify; text-justify:inter-ideograph; font-size:10.0pt; font-family:Arial, sans-serif;'>
+    <a href='{site_url}'>{link_text}</a>
 </p>'''
 
     # full html
@@ -307,9 +312,9 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal
 
 {email_html}
 
-{banner_html}
-
 {site_html}
+
+{banner_html}
 
 <p class=MsoNormal><o:p>&nbsp;</o:p></p>
 </div>
