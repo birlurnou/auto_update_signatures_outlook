@@ -409,12 +409,12 @@ class DatabaseManager:
 class TrayApp(QObject):
     update_signal = pyqtSignal()
     update_complete_signal = pyqtSignal(list)  # Новый сигнал для завершения обновления
-    config = configparser.ConfigParser()
-    config.read('config.ini', encoding='utf-8')
-    conf_notification_frequency = config['settings']['frequency']
 
     def __init__(self):
         super().__init__()
+        self.config = configparser.ConfigParser()
+        self.config.read('config.ini', encoding='utf-8')
+        self.conf_notification_frequency = config['settings']['frequency']
         self.app = QApplication(sys.argv)
         self.app.setQuitOnLastWindowClosed(False)
 
