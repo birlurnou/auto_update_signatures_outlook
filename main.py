@@ -414,7 +414,7 @@ class TrayApp(QObject):
         super().__init__()
         self.config = configparser.ConfigParser()
         self.config.read('config.ini', encoding='utf-8')
-        self.conf_notification_frequency = config['settings']['frequency']
+        self.conf_notification_frequency = self.config['settings']['frequency']
         self.app = QApplication(sys.argv)
         self.app.setQuitOnLastWindowClosed(False)
 
