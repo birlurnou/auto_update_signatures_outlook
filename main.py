@@ -102,16 +102,16 @@ def create_email_signature(global_id, signature_name, first_name, last_name, job
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'> {work_tag}&nbsp;&nbsp;</span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+font-family:"Arial",sans-serif;color:black'> <a href="tel:{work_number}" style="color:black; text-decoration:none;">{work_number}</a></span></p>'''
     
         # mobile + wa
         if personal_number and social_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {pers_tag}&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> <a href="tel:{personal_number.replace(' ', '')}" style="color:black; text-decoration:none;">{personal_number}&nbsp;&nbsp;</a></span>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> <a href="tel:{social_number.replace(' ', '')}" style="color:black; text-decoration:none;">{social_number}</a></span>
 <o:p></o:p>
 </p>'''
         elif personal_number:
@@ -119,20 +119,20 @@ font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'>{pers_tag}&nbsp;</span><span style='font-size:10.0pt;font-family:
-"Arial",sans-serif;color:black'> {personal_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+"Arial",sans-serif;color:black'> <a href="tel:{personal_number.replace(' ', '')}" style="color:black; text-decoration:none;">{personal_number}</a></span></p>'''
         elif social_number and not work_number:
             phones_html += f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'><span
 style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'>{soc_tag}</span><span style='font-size:10.0pt;font-family:
-"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp; <o:p></o:p></span></p>'''
+"Arial",sans-serif;color:black'> <a href="tel:{social_number.replace(' ', '')}" style="color:black; text-decoration:none;">{social_number}</a></span></p>'''
         elif social_number != '':
             phones_html = f'''
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {work_tag}&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {work_number}&nbsp;&nbsp; <o:p></o:p></span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> <a href="tel:{work_number.replace(' ', '')}" style="color:black; text-decoration:none;">{work_number}</a></span>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]}; mso-bidi-font-weight:bold'> {soc_tag}&nbsp;</span>
-<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> {social_number}&nbsp;&nbsp;</span>
+<span style='font-size:10.0pt; font-family:"Arial",sans-serif;color:black'> <a href="tel:{social_number.replace(' ', '')}" style="color:black; text-decoration:none;">{social_number}</a></span>
 <o:p></o:p>
 </p>'''
 
