@@ -102,7 +102,7 @@ def create_email_signature(global_id, signature_name, first_name, last_name, job
 <p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph'>
 <span style='font-size:10.0pt;font-family:"Arial",sans-serif;color:{config_hotel["color"]};
 mso-bidi-font-weight:bold'> {work_tag}&nbsp;&nbsp;</span><span style='font-size:10.0pt;
-font-family:"Arial",sans-serif;color:black'> <a href="tel:{work_number}" style="color:black; text-decoration:none;">{work_number}</a></span></p>'''
+font-family:"Arial",sans-serif;color:black'> <a href="tel:{work_number.replace(' ', '')}" style="color:black; text-decoration:none;">{work_number}</a></span></p>'''
     
         # mobile + wa
         if personal_number and social_number:
