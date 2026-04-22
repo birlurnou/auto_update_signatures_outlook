@@ -1,34 +1,28 @@
-# Automatic update of Outlook signature in a corporate environment
-Script for auto update signature on Outlook in a corporate environment
+# Outlook Signature Auto-Updater
 
-**How the script works**
+Система для автоматического обновления подписей Outlook в корпоративной среде.
 
-1. On the user's side, there will be a client part of the program that takes data from the database and generates signatures locally.
+## Описание
 
-2. On the administration side, there will be an interface for working with signature data and a database.
+Скрипт автоматически генерирует и устанавливает email-подписи для сотрудников на основе данных из базы данных SQL. Работает в фоновом режиме через системный трей, периодически проверяет обновления и применяет их к Outlook.
 
-~~**Plans**~~ **99% complete**
+## Основные возможности
 
-*main.py*
+- **Автоматическое обновление** подписей по расписанию
+- **Интеграция с Active Directory** (определение текущего пользователя)
+- **Поддержка нескольких отелей/брендов** с разными цветовыми схемами
+- **Многоязычность** (русский/английский)
+- **Гибкая настройка** через конфигурационный файл
+- **Работа в системном трее** с уведомлениями
+- **Черный список пользователей** (исключение определенных учетных записей)
+- **Поддержка баннеров** (изображения в подписи)
 
-* ~~Implement data retrieval from SQL~~
+## Требования
 
-* ~~Implement the .htm signature file generation process~~
+### Системные требования
+- Windows 7/10/11
+- Microsoft Outlook (2013, 2016, 2019, 365)
 
-* ~~Implement smart storage and replacement.htm files~~
-
-* ~~Implement adding a signature to the registry~~
-
-* ~~Implement signature settings via a config file~~
-
-* ~~Implement a small user interface to control the stability of the user~~
-
-*gui.py*
-
-* ~~Sketch out an interface template and think over the little things~~
-
-* ~~Create interface~~
-
-* ~~Set up logic~~
-
-* ~~Minor fixes~~
+### Необходимые пакеты
+```bash
+pip install -r requirements.txt
