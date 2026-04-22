@@ -20,8 +20,9 @@
 ## Требования
 
 ### Системные требования
-- Windows 7/10/11
-- Microsoft Outlook (2013, 2016, 2019, 365)
+- windows
+- microsoft outlook
+- python
 
 ### Необходимые пакеты
 ```bash
