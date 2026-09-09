@@ -1157,27 +1157,39 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     config.read('config.ini', encoding='utf-8')
 
     username = os.environ.get('USERNAME')
-    signatures_path = rf'C:\Users\{username}' + config['settings']['signatures_path']
 
-    if not os.path.exists(signatures_path):
-        os.makedirs(signatures_path)
-    filename = f'{global_id}-{signature_name}.htm'
-    full_path = os.path.join(signatures_path, filename)
+    folders_to_save = []
+    main_path = rf'C:\Users\{username}' + config['settings']['signatures_path']
+    folders_to_save.append(main_path)
+    hhc_path = rf'C:\Users\{username}.HHC' + config['settings']['signatures_path']
+    if os.path.exists(rf'C:\Users\{username}.HHC'):
+        folders_to_save.append(hhc_path)
+        _logging(f'Найдена папка .HHC: {hhc_path}')
 
-    # создаем папку для файлов
-    files_folder = os.path.join(signatures_path, f'{global_id}-{signature_name}.files')
-    if not os.path.exists(files_folder):
-        os.makedirs(files_folder)
+    for signatures_path in folders_to_save:
+        # Создаем папку если нет
+        if not os.path.exists(signatures_path):
+            print(signatures_path)
+            os.makedirs(signatures_path)
+            _logging(f'Создана папка: {signatures_path}')
 
-    # 1. colorschememapping.xml (всегда создаем/перезаписываем)
-    colorschememapping_content = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        filename = f'{global_id}-{signature_name}.htm'
+        full_path = os.path.join(signatures_path, filename)
+
+        # создаем папку для файлов
+        files_folder = os.path.join(signatures_path, f'{global_id}-{signature_name}.files')
+        if not os.path.exists(files_folder):
+            os.makedirs(files_folder)
+
+        # 1. colorschememapping.xml (всегда создаем/перезаписываем)
+        colorschememapping_content = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <a:clrMap xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>'''
 
-    with open(os.path.join(files_folder, 'colorschememapping.xml'), 'w', encoding='utf-8') as f:
-        f.write(colorschememapping_content)
+        with open(os.path.join(files_folder, 'colorschememapping.xml'), 'w', encoding='utf-8') as f:
+            f.write(colorschememapping_content)
 
-    # 2. filelist.xml (всегда создаем/перезаписываем)
-    filelist_content = f'''<xml xmlns:o="urn:schemas-microsoft-com:office:office">
+        # 2. filelist.xml (всегда создаем/перезаписываем)
+        filelist_content = f'''<xml xmlns:o="urn:schemas-microsoft-com:office:office">
  <o:MainFile HRef="../{global_id}-{signature_name}.htm"/>
  <o:File HRef="colorschememapping.xml"/>
  <o:File HRef="image001.jpg"/>
@@ -1185,63 +1197,63 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
  <o:File HRef="filelist.xml"/>
 </xml>'''
 
-    with open(os.path.join(files_folder, 'filelist.xml'), 'w', encoding='utf-8') as f:
-        f.write(filelist_content)
+        with open(os.path.join(files_folder, 'filelist.xml'), 'w', encoding='utf-8') as f:
+            f.write(filelist_content)
 
-    # 3. копируем баннер как image001.jpg и image002.jpg (всегда обновляем)
-    found_banner_path = None
+        # 3. копируем баннер как image001.jpg и image002.jpg (всегда обновляем)
+        found_banner_path = None
 
-    if banner_path:
-        base_path, _ = os.path.splitext(banner_path)
+        if banner_path:
+            base_path, _ = os.path.splitext(banner_path)
 
-        possible_paths = [
-            banner_path,
-            f"{base_path}.jpg",
-            f"{base_path}.png",
-            f"{base_path}.jpeg",
-        ]
+            possible_paths = [
+                banner_path,
+                f"{base_path}.jpg",
+                f"{base_path}.png",
+                f"{base_path}.jpeg",
+            ]
 
-        for path in possible_paths:
-            if os.path.exists(path):
-                found_banner_path = path
-                print(f"Найден баннер: {found_banner_path}")
-                break
+            for path in possible_paths:
+                if os.path.exists(path):
+                    found_banner_path = path
+                    print(f"Найден баннер: {found_banner_path}")
+                    break
 
-        if found_banner_path:
-            try:
-                _, ext = os.path.splitext(found_banner_path)
-                ext_lower = ext.lower()
+            if found_banner_path:
+                try:
+                    _, ext = os.path.splitext(found_banner_path)
+                    ext_lower = ext.lower()
 
-                dest_file_1 = os.path.join(files_folder, f'image001{ext_lower}')
-                dest_file_2 = os.path.join(files_folder, f'image002{ext_lower}')
+                    dest_file_1 = os.path.join(files_folder, f'image001{ext_lower}')
+                    dest_file_2 = os.path.join(files_folder, f'image002{ext_lower}')
 
-                shutil.copy2(found_banner_path, dest_file_1)
-                shutil.copy2(found_banner_path, dest_file_2)
+                    shutil.copy2(found_banner_path, dest_file_1)
+                    shutil.copy2(found_banner_path, dest_file_2)
 
-                if ext_lower not in ('.jpg', '.jpeg'):
-                    try:
-                        jpg_file_1 = os.path.join(files_folder, 'image001.jpg')
-                        jpg_file_2 = os.path.join(files_folder, 'image002.jpg')
+                    if ext_lower not in ('.jpg', '.jpeg'):
+                        try:
+                            jpg_file_1 = os.path.join(files_folder, 'image001.jpg')
+                            jpg_file_2 = os.path.join(files_folder, 'image002.jpg')
 
-                        shutil.copy2(found_banner_path, jpg_file_1)
-                        shutil.copy2(found_banner_path, jpg_file_2)
+                            shutil.copy2(found_banner_path, jpg_file_1)
+                            shutil.copy2(found_banner_path, jpg_file_2)
 
-                        print(f"Созданы JPG копии баннера")
-                        _logging(f'Добавлена подпись {global_id}-{signature_name}')
-                    except Exception as e:
-                        print(f"Не удалось создать JPG копию: {e}")
+                            print(f"Созданы JPG копии баннера")
+                            _logging(f'Добавлена подпись {global_id}-{signature_name}')
+                        except Exception as e:
+                            print(f"Не удалось создать JPG копию: {e}")
 
-            except Exception as e:
-                print(f"Ошибка при копировании баннера {found_banner_path}: {e}")
+                except Exception as e:
+                    print(f"Ошибка при копировании баннера {found_banner_path}: {e}")
+            else:
+                print(f"Баннер не найден по пути: {banner_path}")
+                print(f"Проверенные пути: {possible_paths}")
         else:
-            print(f"Баннер не найден по пути: {banner_path}")
-            print(f"Проверенные пути: {possible_paths}")
-    else:
-        print("Путь к баннеру не указан")
+            print("Путь к баннеру не указан")
 
-    # Сохраняем HTML файл
-    with open(full_path, 'w', encoding='windows-1251') as f:
-        f.write(html_content)
+        # Сохраняем HTML файл
+        with open(full_path, 'w', encoding='windows-1251') as f:
+            f.write(html_content)
 
 def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
