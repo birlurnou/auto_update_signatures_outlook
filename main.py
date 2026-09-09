@@ -12,6 +12,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
+import datetime
 
 def create_email_signature(global_id, signature_name, first_name, last_name, job, email, greet,
                             work_number, personal_number, social_number, cut_number,
@@ -197,11 +198,11 @@ style='font-size:10.0pt;font-family:"Arial",sans-serif'><o:p></o:p></span></p>''
 
         # banner
         banner_html = ''
-        # Проверяем настройку и наличие пути
+        # проверяем настройку и наличие пути
         if conf_banner == 1 and banner_path:
-            # Проверяем существование файла с оригинальным расширением
+            # поверяем существование файла с оригинальным расширением
             if os.path.exists(banner_path):
-                # Файл существует - создаем HTML
+                # файл существует - создаем HTML
                 banner_html = fr'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
@@ -234,13 +235,13 @@ href="{banner_url}"><!--[if gte vml 1]><v:shapetype
 src="{global_id}-{signature_name}.files/image002.jpg" v:shapes="_x0000_i1029"><![endif]></a><o:p></o:p></span></p>
 '''
             else:
-                # Файл не найден - можно проверить альтернативные расширения
+                # файл не найден - можно проверить альтернативные расширения
                 base_path, _ = os.path.splitext(banner_path)
                 possible_paths = [f"{base_path}.jpg", f"{base_path}.png", f"{base_path}.jpeg"]
 
                 for path in possible_paths:
                     if os.path.exists(path):
-                        # Если нашли файл с другим расширением - создаем HTML
+                        # если нашли файл с другим расширением - создаем HTML
                         banner_html = fr'''<p class=MsoNormal style='text-align:justify;text-justify:inter-ideograph;
 line-height:120%;text-autospace:none'><b><span style='font-size:9.0pt;
 line-height:120%;font-family:"Arial",sans-serif;color:#151F6D'><o:p>&nbsp;</o:p></span></b></p>
@@ -1152,16 +1153,18 @@ font-family:"Arial",sans-serif;color:black'>{cut_number if cut_number else ''}&n
 
 
 def save_signature_to_file(html_content, signature_name, global_id, user_global_id, banner_path):
-    # read ini file
     config = configparser.ConfigParser()
     config.read('config.ini', encoding='utf-8')
-    signatures_path = rf'C:\Users\{user_global_id}' + config['settings']['signatures_path']
+
+    username = os.environ.get('USERNAME')
+    signatures_path = rf'C:\Users\{username}' + config['settings']['signatures_path']
+
     if not os.path.exists(signatures_path):
         os.makedirs(signatures_path)
     filename = f'{global_id}-{signature_name}.htm'
     full_path = os.path.join(signatures_path, filename)
 
-    # Создаем папку для файлов
+    # создаем папку для файлов
     files_folder = os.path.join(signatures_path, f'{global_id}-{signature_name}.files')
     if not os.path.exists(files_folder):
         os.makedirs(files_folder)
@@ -1185,20 +1188,17 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
     with open(os.path.join(files_folder, 'filelist.xml'), 'w', encoding='utf-8') as f:
         f.write(filelist_content)
 
-    # 3. Копируем баннер как image001.jpg и image002.jpg (всегда обновляем)
-    # Проверяем оба возможных расширения
+    # 3. копируем баннер как image001.jpg и image002.jpg (всегда обновляем)
     found_banner_path = None
 
     if banner_path:
-        # Получаем путь без расширения
         base_path, _ = os.path.splitext(banner_path)
 
-        # Проверяем оба варианта: .png и .jpg
         possible_paths = [
-            banner_path,  # оригинальный путь из БД
+            banner_path,
             f"{base_path}.jpg",
             f"{base_path}.png",
-            f"{base_path}.jpeg",  # на случай если .jpeg
+            f"{base_path}.jpeg",
         ]
 
         for path in possible_paths:
@@ -1209,30 +1209,25 @@ def save_signature_to_file(html_content, signature_name, global_id, user_global_
 
         if found_banner_path:
             try:
-                # Получаем расширение найденного файла
                 _, ext = os.path.splitext(found_banner_path)
                 ext_lower = ext.lower()
 
-                # Копируем файл с исходным расширением
                 dest_file_1 = os.path.join(files_folder, f'image001{ext_lower}')
                 dest_file_2 = os.path.join(files_folder, f'image002{ext_lower}')
 
-                # Копируем файл
                 shutil.copy2(found_banner_path, dest_file_1)
                 shutil.copy2(found_banner_path, dest_file_2)
 
-                # Также создаем JPG версию для совместимости с HTML
                 if ext_lower not in ('.jpg', '.jpeg'):
                     try:
                         jpg_file_1 = os.path.join(files_folder, 'image001.jpg')
                         jpg_file_2 = os.path.join(files_folder, 'image002.jpg')
 
-                        # Если это PNG, можно просто скопировать и переименовать
-                        # Outlook может открыть PNG как JPG, если только переименовать
                         shutil.copy2(found_banner_path, jpg_file_1)
                         shutil.copy2(found_banner_path, jpg_file_2)
 
                         print(f"Созданы JPG копии баннера")
+                        _logging(f'Добавлена подпись {global_id}-{signature_name}')
                     except Exception as e:
                         print(f"Не удалось создать JPG копию: {e}")
 
@@ -1252,6 +1247,11 @@ def set_outlook_signature(sid, signature_name, global_id):
     # read ini file
     config = configparser.ConfigParser()
     config.read('config.ini', encoding='utf-8')
+
+    username = os.environ.get('USERNAME')
+    user_info = win32security.LookupAccountName(None, username)
+    sid = win32security.ConvertSidToStringSid(user_info[0])
+
     reg_path = rf'{sid}' + config['settings']['reg_path']
     signature_name = f'{global_id}-{signature_name}'
     try:
@@ -1414,16 +1414,33 @@ class TrayApp(QObject):
         self.timer.start(int(self.conf_notification_frequency) * 60 * 1000)  # 60 mins
         sys.exit(self.app.exec_())
 
+# создаем папку для логов
+folder = r'C:\outlook_logs'
+os.makedirs(folder, exist_ok=True)
+
+def _logging(log_text, additional = ''):
+    try:
+        with open(f'C:\\outlook_logs\\log.txt', 'a', encoding='utf-8') as f:
+            f.write(f'{additional}[{str(datetime.datetime.now())[:-7]}] {log_text}\n')
+    except:
+        pass
 
 def main_with_return():
-    user_global_id = os.getlogin()
+
+    # user_global_id = os.getlogin()
+    user_global_id = os.environ.get('USERNAME')
+    _logging(f'user global id: {user_global_id}', '\n')
+
     config = configparser.ConfigParser()
     config.read('config.ini', encoding='utf-8')
-    list_users = config['users']['list_users']
+    additional_black_list = config['users']['additional_black_list']
     black_list = config['users']['black_list']
-    if user_global_id not in list_users and list_users or user_global_id in black_list and black_list:
+
+    if user_global_id in black_list and black_list or user_global_id in additional_black_list and additional_black_list:
+        # user_global_id not in list_users and list_users or
+        _logging(f'user global id in black list -> exit')
         exit()
-    updated_signatures = []  # Список для хранения имен обновленных подписей
+    updated_signatures = []  # список для хранения имен обновленных подписей
 
     db = DatabaseManager()
     all_users_data = db.get_user_data(user_global_id)
@@ -1436,8 +1453,13 @@ def main_with_return():
     # print(db.get_user_data(user_global_id))
 
     # sid
-    user_info = win32security.LookupAccountName(None, os.getlogin())
+    # user_info = win32security.LookupAccountName(None, os.getlogin())
+    # sid = win32security.ConvertSidToStringSid(user_info[0])
+    username = os.environ.get('USERNAME')
+    user_info = win32security.LookupAccountName(None, username)
     sid = win32security.ConvertSidToStringSid(user_info[0])
+    _logging(f'sid: {sid}')
+    _logging(rf'Папка для подписей: C:\Users\{username}' + config['settings']['signatures_path'])
 
     for user in users:
         (signature_id, global_id, signature_name, first_name, last_name, job, email, greet,
