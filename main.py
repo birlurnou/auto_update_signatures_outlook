@@ -1420,7 +1420,11 @@ os.makedirs(folder, exist_ok=True)
 
 def _logging(log_text, additional = ''):
     try:
-        with open(f'C:\\outlook_logs\\log.txt', 'a', encoding='utf-8') as f:
+        # with open(f'C:\\outlook_logs\\log.txt', 'a', encoding='utf-8') as f:
+        #     f.write(f'{additional}[{str(datetime.datetime.now())[:-7]}] {log_text}\n')
+        log_dir = os.path.join(os.environ.get('USERPROFILE'), 'outlook_logs')
+        os.makedirs(log_dir, exist_ok=True)
+        with open(os.path.join(log_dir, 'log.txt'), 'a', encoding='utf-8') as f:
             f.write(f'{additional}[{str(datetime.datetime.now())[:-7]}] {log_text}\n')
     except:
         pass
